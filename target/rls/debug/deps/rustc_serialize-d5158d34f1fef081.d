@@ -1,0 +1,10 @@
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\rustc_serialize-d5158d34f1fef081.rmeta: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\serialize.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\collection_impls.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\base64.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\hex.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\json.rs
+
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\rustc_serialize-d5158d34f1fef081.d: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\serialize.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\collection_impls.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\base64.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\hex.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\json.rs
+
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\lib.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\serialize.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\collection_impls.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\base64.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\hex.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\rustc-serialize-0.3.24\src\json.rs:

@@ -1,0 +1,10 @@
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\libserde_derive_internals-5f5487362615ce0d.rlib: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\ast.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\attr.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\ctxt.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\case.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\check.rs
+
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\serde_derive_internals-5f5487362615ce0d.d: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\ast.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\attr.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\ctxt.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\case.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\check.rs
+
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\lib.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\ast.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\attr.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\ctxt.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\case.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\serde_derive_internals-0.23.1\src\check.rs:

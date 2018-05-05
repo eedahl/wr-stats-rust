@@ -1,0 +1,13 @@
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\libc-83c0cdef93b42ead.rmeta: C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\lib.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\macros.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\dox.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\windows.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\mod.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\net.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\cloudabi\mod.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\fuchsia\mod.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\unix\mod.rs
+
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\libc-83c0cdef93b42ead.d: C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\lib.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\macros.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\dox.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\windows.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\mod.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\net.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\cloudabi\mod.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\fuchsia\mod.rs C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\unix\mod.rs
+
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\lib.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\macros.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\dox.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\windows.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\mod.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\net.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\cloudabi\mod.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\fuchsia\mod.rs:
+C:\Users\edahl\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\unix\mod.rs:

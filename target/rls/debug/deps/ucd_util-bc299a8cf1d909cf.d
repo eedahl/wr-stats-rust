@@ -1,0 +1,11 @@
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\ucd_util-bc299a8cf1d909cf.rmeta: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\hangul.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\ideograph.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\name.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\property.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\unicode_tables\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\unicode_tables\jamo_short_name.rs
+
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\ucd_util-bc299a8cf1d909cf.d: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\hangul.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\ideograph.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\name.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\property.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\unicode_tables\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\unicode_tables\jamo_short_name.rs
+
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\lib.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\hangul.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\ideograph.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\name.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\property.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\unicode_tables\mod.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\ucd-util-0.1.1\src\unicode_tables\jamo_short_name.rs:

@@ -1,0 +1,13 @@
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\libc-378c37ebadf9e5b9.rmeta: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\macros.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\dox.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\windows.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\net.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\cloudabi\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\fuchsia\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\unix\mod.rs
+
+d:\Dropbox\dev\wr-stats rust\target\rls\debug\deps\libc-378c37ebadf9e5b9.d: C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\lib.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\macros.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\dox.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\windows.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\net.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\cloudabi\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\fuchsia\mod.rs C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\unix\mod.rs
+
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\lib.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\macros.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\dox.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\windows.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\mod.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\redox\net.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\cloudabi\mod.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\fuchsia\mod.rs:
+C:\Users\Eivin\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.40\src\unix\mod.rs:
