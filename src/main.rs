@@ -30,7 +30,7 @@ fn time_to_string(t : &Time) -> String {
     format!("{min:02}:{sec:02},{ms:02}", min=t.minutes, sec=t.seconds, ms=t.milliseconds)
 }
 
-fn time_from_string(st : String) -> Time {
+fn time_from_string(st : &String) -> Time {
 
     let re = regex::Regex::new(r":|,").unwrap();
     let t : Vec<&str> = re.split(&st).collect();
@@ -153,7 +153,7 @@ fn main() {
     let t = Time { minutes : 1, seconds : 32, milliseconds : 56 };
     println!("{}", time_to_string(&t));
 
-    println!("{}", time_to_string(&time_from_string(String::from("00:15,31"))));
+    println!("{}", time_to_string(&time_from_string(&String::from("00:15,31"))));
 
 
     // Read WR table data
@@ -167,7 +167,7 @@ fn main() {
             wr_tables.push(WR{ 
                 table: row[0].parse::<i32>().unwrap(),
                 lev : row[1].parse::<i32>().unwrap(),
-                time : time_from_string(row[3].to_string()),
+                time : time_from_string(&row[3].to_string()),
                 kuski : row[4].to_string() });
         }
     }
@@ -186,7 +186,7 @@ fn main() {
             let mut data : Vec<&str> = line.trim().split_whitespace().collect();
 
             if data.len() != 0 && level_found {
-                time_table.push(time_from_string(String::from(data[0])));
+                time_table.push(time_from_string(&String::from(data[0])));
                 level_counter += 1;
                 level_found = false;
             }
@@ -212,22 +212,22 @@ fn main() {
 
     let mut data = String::new();
 
-    format!("{:<5}{:<19}{:<10}{:<7}{:<10}{:<13}{:<10}{:<11}{:<13}\n", headers[0], headers[1], headers[2], headers[3], headers[4], headers[5], headers[6], headers[7], headers[8]);
+    data.push_str(&format!("{:<5}{:<19}{:<10}{:<7}{:<10}{:<13}{:<10}{:<11}{:<13}\r\n", headers[0], headers[1], headers[2], headers[3], headers[4], headers[5], headers[6], headers[7], headers[8]));
 
     for i in 0..54 {
         let t = &time_table[i];
         let lev : i32 = (i as i32) + 1;
-        let last_wr_beat = &wr_tables.into_iter().filter(|x| (x.lev == lev + 1) && compare_times(t, &x.time)).last();
-        let first_wr_not_beat = &wr_tables.into_iter().filter(|x| (x.table == lev) && !compare_times(t, &x.time)).nth(0);
+        let last_wr_beat = &wr_tables.iter().filter(|x| (x.lev == lev) && compare_times(t, &x.time)).last();
+        let first_wr_not_beat = &wr_tables.iter().filter(|x| (x.lev == lev) && !compare_times(t, &x.time)).nth(0);
 
         let lev_number = lev.to_string();
         let lev_name = level_names[i];
         let pr = time_to_string(t);
     
-        if last_wr_beat {
-            last_table_beat = wrs_beat.last().unwrap().table.to_string();
-            last_time_beat = time_to_string(first.time);
-            last_kuski_beat = wrs_beat.last().unwrap().kuski.clone();
+        if last_wr_beat.is_some() {
+            last_table_beat = last_wr_beat.unwrap().table.to_string();
+            last_time_beat = time_to_string(&last_wr_beat.unwrap().time);
+            last_kuski_beat = last_wr_beat.unwrap().kuski.clone();
         }
         else {
             last_table_beat = String::from("-");
@@ -235,10 +235,10 @@ fn main() {
             last_kuski_beat = String::from("-");
         }
 
-        if wrs_not_beat.len() != 0 {
-            next_target = time_to_string(&wrs_not_beat.first().unwrap().time);
-            diff = "+".to_owned() + &time_to_string(&time_difference(t, &wrs_not_beat.first().unwrap().time));
-            next_kuski = wrs_not_beat.first().unwrap().kuski.clone();
+        if first_wr_not_beat.is_some() {
+            next_target = time_to_string(&first_wr_not_beat.unwrap().time);
+            diff = "+".to_owned() + &time_to_string(&time_difference(t, &first_wr_not_beat.unwrap().time));
+            next_kuski = first_wr_not_beat.unwrap().kuski.clone();
         }
         else {
             next_target = String::from("-");
@@ -246,7 +246,7 @@ fn main() {
             next_kuski = String::from("-");
         }
         
-        data.push_str(&format!("{:<5}{:<19}{:<10}{:<7}{:<10}{:<13}{:<10}{:<11}{:<13}\n",
+        data.push_str(&format!("{:<5}{:<19}{:<10}{:<7}{:<10}{:<13}{:<10}{:<11}{:<13}\r\n",
             lev_number,
             lev_name,
             pr,
