@@ -149,12 +149,6 @@ fn main() {
          "Hang Tight",
          "Hooked",
          "Apple Harvest"];
-        
-    let t = Time { minutes : 1, seconds : 32, milliseconds : 56 };
-    println!("{}", time_to_string(&t));
-
-    println!("{}", time_to_string(&time_from_string(&String::from("00:15,31"))));
-
 
     // Read WR table data
     let mut wr_tables = Vec::new();
@@ -219,9 +213,9 @@ fn main() {
             wr.kuski.clone())
         }
         else {
-            (String::from("-"),
-            String::from("-"),
-            String::from("-"))
+            ("-".into(),
+            "-".into(),
+            "-".into())
         };
 
         let (next_target, diff, next_kuski) = if let Some(wr) = first_wr_not_beat {
@@ -230,9 +224,9 @@ fn main() {
             wr.kuski.clone())
         }
         else {
-            (String::from("-"),
-            String::from("-"),
-            String::from("-"))
+            ("-".into(),
+            "-".into(),
+            "-".into())
         };
         
         data.push_str(&format!("{:<5}{:<19}{:<10}{:<7}{:<10}{:<13}{:<10}{:<11}{:<13}\r\n",
