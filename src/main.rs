@@ -4,8 +4,6 @@ extern crate web_view;
 
 use web_view::*;
 
-use std::io::prelude::*;
-
 //use elma::state::*;
 //let state = State::load("state.dat").unwrap();
 

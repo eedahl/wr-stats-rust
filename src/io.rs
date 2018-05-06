@@ -1,7 +1,9 @@
 extern crate csv;
 
-mod time;
+use WR;
+use time;
 use time::Time;
+use ::std::io::prelude::*;
 
 fn read_wr_tables() -> Vec<WR> {
     let mut wrt = Vec::new();
@@ -21,7 +23,7 @@ fn read_wr_tables() -> Vec<WR> {
 fn read_stats() -> Vec<Time> {
     let mut prt = Vec::new();
 
-    let mut f = std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
+    let mut f = ::std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
     let mut c = String::new();
     f.read_to_string(&mut c)
         .expect("Cannot read file: stats.txt");
