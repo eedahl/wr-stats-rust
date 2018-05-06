@@ -6,6 +6,5 @@ authors = ["Eivind E. Dahl <eivind.dahl@gmail.com>"]
 [dependencies]
 csv = "*"
 regex = "*"
-#time = "*"
-#serde = "*"
-#serde_derive = "*"
+elma = { git = "https://github.com/hexjelly/elma-rust", branch = "state" }
+web-view = { git = "https://github.com/Boscop/web-view", branch = "master" }
