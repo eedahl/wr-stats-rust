@@ -1,19 +1,13 @@
 extern crate csv;
-extern crate regex;
 //extern crate serde;
 //#[macro_use]
 //extern crate serde_derive;
 
 use std::io::prelude::*;
 
-//#[derive(Debug,Deserialize)]
-struct Time {
-    minutes: i32,
-    seconds: i32,
-    milliseconds: i32,
-}
+mod time;
+use time::Time;
 
-//#[derive(Debug,Deserialize)]
 struct WR {
     table: i32,
     lev: i32,
@@ -21,106 +15,12 @@ struct WR {
     kuski: String,
 }
 
-fn compare_times(t1: &Time, t2: &Time) -> bool {
-    t1.minutes * 60 * 100 + t1.seconds * 100 + t1.milliseconds
-        <= t2.minutes * 60 * 100 + t2.seconds * 100 + t2.milliseconds
-}
-
-fn time_to_string(t: &Time) -> String {
-    format!(
-        "{min:02}:{sec:02},{ms:02}",
-        min = t.minutes,
-        sec = t.seconds,
-        ms = t.milliseconds
-    )
-}
-
-fn time_from_string(st: &String) -> Time {
-    let re = regex::Regex::new(r":|,").unwrap();
-    let t: Vec<&str> = re.split(&st).collect();
-    let (m, s, ms) = if t.len() == 3 {
-        (
-            t[0].parse::<i32>().unwrap(),
-            t[1].parse::<i32>().unwrap(),
-            t[2].parse::<i32>().unwrap(),
-        )
-    } else {
-        (
-            0,
-            t[0].parse::<i32>().unwrap(),
-            t[1].parse::<i32>().unwrap(),
-        )
-    };
-
-    Time {
-        minutes: m,
-        seconds: s,
-        milliseconds: ms,
-    }
-}
-
-fn time_difference(t1: &Time, t2: &Time) -> Time {
-    let mut ms = t1.milliseconds - t2.milliseconds;
-    let mut s;
-    let m;
-
-    if ms < 0 {
-        s = t1.seconds - t2.seconds - 1;
-        ms = ms + 100;
-    } else {
-        s = t1.seconds - t2.seconds;
-    }
-
-    if s < 0 {
-        m = t1.minutes - t2.minutes - 1;
-        s = 60 + s;
-    } else {
-        m = t1.minutes - t2.minutes;
-    }
-
-    Time {
-        minutes: m,
-        seconds: s,
-        milliseconds: ms,
-    }
-}
-
-fn add_times(t1: Time, t2: Time) -> Time {
-    let mut ms = t1.milliseconds + t2.milliseconds;
-    let mut s;
-    let m;
-
-    if ms > 99 {
-        s = t1.seconds + t2.seconds + 1;
-        ms = ms - 100;
-    } else {
-        s = t1.seconds + t2.seconds;
-    }
-
-    if s > 60 {
-        m = t1.minutes + t2.minutes + 1;
-        s = s - 60;
-    } else {
-        m = t1.minutes + t2.minutes;
-    }
-
-    Time {
-        minutes: m,
-        seconds: s,
-        milliseconds: ms,
-    }
-}
-
-#[test]
-fn test_time_to_string() {
-    let t = Time {
-        minutes: 1,
-        seconds: 32,
-        milliseconds: 56,
-    };
-    println!("{}", time_to_string(t));
-}
-
+//TODO(edahl): put time stuff in a module
+//TODO(edahl): store time as single int and use display/format for string
+//TODO(edahl): fix time methods to account for single int storage
+//TODO(edahl): read lev names from a file
+//TODO(edahl): find sensible html-view crate
+//TODO(edahl): code to decrypt state or use crate
 fn main() {
     let level_names = vec![
         "Warm Up",
@@ -189,7 +89,7 @@ fn main() {
         wr_tables.push(WR {
             table: row[0].parse::<i32>().unwrap(),
             lev: row[1].parse::<i32>().unwrap(),
-            time: time_from_string(&row[3].to_string()),
+            time: time::from_string(&row[3].to_string()),
             kuski: row[4].to_string(),
         });
     }
@@ -208,7 +108,7 @@ fn main() {
         let mut data: Vec<&str> = line.trim().split_whitespace().collect();
 
         if data.len() != 0 && level_found {
-            time_table.push(time_from_string(&String::from(data[0])));
+            time_table.push(time::from_string(&String::from(data[0])));
             level_counter += 1;
             level_found = false;
         }
@@ -246,21 +146,21 @@ fn main() {
         let lev: i32 = (i as i32) + 1;
         let last_wr_beat = wr_tables
             .iter()
-            .filter(|x| (x.lev == lev) && compare_times(t, &x.time))
+            .filter(|x| (x.lev == lev) && time::compare(t, &x.time))
             .last();
         let first_wr_not_beat = wr_tables
             .iter()
-            .filter(|x| (x.lev == lev) && !compare_times(t, &x.time))
+            .filter(|x| (x.lev == lev) && !time::compare(t, &x.time))
             .nth(0);
 
         let lev_number = lev.to_string();
         let lev_name = level_names[i];
-        let pr = time_to_string(t);
+        let pr = time::to_string(t);
 
         let (last_table_beat, last_time_beat, last_kuski_beat) = if let Some(wr) = last_wr_beat {
             (
                 wr.table.to_string(),
-                time_to_string(&wr.time),
+                time::to_string(&wr.time),
                 wr.kuski.clone(),
             )
         } else {
@@ -269,8 +169,8 @@ fn main() {
 
         let (next_target, diff, next_kuski) = if let Some(wr) = first_wr_not_beat {
             (
-                time_to_string(&wr.time),
-                "+".to_owned() + &time_to_string(&time_difference(t, &wr.time)),
+                time::to_string(&wr.time),
+                "+".to_owned() + &time::to_string(&time::difference(t, &wr.time)),
                 wr.kuski.clone(),
             )
         } else {
