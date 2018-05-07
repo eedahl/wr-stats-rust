@@ -19,7 +19,7 @@ pub fn read_targets_table() -> Vec<Targets> {
                 professional: time::from_string(&row[3]),
                 good: time::from_string(&row[4]),
                 ok: time::from_string(&row[5]),
-                beginner: time::from_string(&row[6])
+                beginner: time::from_string(&row[6]),
             });
         }
     }
@@ -262,7 +262,7 @@ pub fn populate_table_data_alt() -> Vec<DataRow> {
             .filter(|x| (x.lev == lev) && !time::compare(&t, &x.time))
             .nth(0);
 
-        data.push(DataRow{
+        data.push(DataRow {
             lev_number: lev,
             lev_name: lev_name.to_string(),
             pr: t,

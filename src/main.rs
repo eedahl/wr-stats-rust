@@ -69,7 +69,7 @@ fn main() {
         html_table_alt.push_str(&html::table_data_s(&r.lev_number.to_string()));
         html_table_alt.push_str(&html::table_data_s(&r.lev_name));
         html_table_alt.push_str(&html::time_to_tagged_td(&r.pr, &targets_table[i]));
-        
+
         if let Some(wr) = r.wr_beat.clone() {
             html_table_alt.push_str(&html::table_data_s(&wr.table.to_string()));
             html_table_alt.push_str(&html::time_to_tagged_td(&wr.time, &targets_table[i]));
@@ -99,7 +99,6 @@ fn main() {
 
     html_table = html::inline_table(html_table);
     html_table_alt = html::inline_table(html_table_alt);
-
 
     let html = format!(
         r#"
