@@ -8,3 +8,5 @@ csv = "*"
 regex = "*"
 elma = { git = "https://github.com/hexjelly/elma-rust", branch = "master" }
 web-view = { git = "https://github.com/Boscop/web-view", branch = "master" }
+notify = "*"
+htmlescape = "*"

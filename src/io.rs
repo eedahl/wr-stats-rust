@@ -1,10 +1,9 @@
 extern crate csv;
+extern crate elma;
 
 use WR;
 use Targets;
 use DataRow;
-use time;
-use time::Time;
 use std::io::prelude::*;
 
 pub fn read_targets_table() -> Vec<Targets> {
@@ -13,13 +12,13 @@ pub fn read_targets_table() -> Vec<Targets> {
     for record in r.records() {
         if let Ok(row) = record {
             tst.push(Targets {
-                godlike: time::from_string(&row[0]),
-                legendary: time::from_string(&row[1]),
-                world_class: time::from_string(&row[2]),
-                professional: time::from_string(&row[3]),
-                good: time::from_string(&row[4]),
-                ok: time::from_string(&row[5]),
-                beginner: time::from_string(&row[6]),
+                godlike: elma::Time::from(row[0].as_ref()),
+                legendary: elma::Time::from(row[1].as_ref()),
+                world_class: elma::Time::from(row[2].as_ref()),
+                professional: elma::Time::from(row[3].as_ref()),
+                good: elma::Time::from(row[4].as_ref()),
+                ok: elma::Time::from(row[5].as_ref()),
+                beginner: elma::Time::from(row[6].as_ref()),
             });
         }
     }
@@ -34,14 +33,14 @@ fn read_wr_tables() -> Vec<WR> {
         wrt.push(WR {
             table: row[0].parse::<i32>().unwrap(),
             lev: row[1].parse::<i32>().unwrap(),
-            time: time::from_string(&row[3].to_string()),
+            time: elma::Time::from(row[3].as_ref()),
             kuski: row[4].to_string(),
         });
     }
     wrt
 }
 
-fn read_stats() -> Vec<Time> {
+pub fn read_stats() -> Vec<elma::Time> {
     let mut prt = Vec::new();
 
     let mut f = ::std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
@@ -55,7 +54,7 @@ fn read_stats() -> Vec<Time> {
         let mut data: Vec<&str> = line.trim().split_whitespace().collect();
 
         if data.len() != 0 && level_found {
-            prt.push(time::from_string(&String::from(data[0])));
+            prt.push(elma::Time::from(data[0].as_ref()));
             level_counter += 1;
             level_found = false;
         }
@@ -71,128 +70,28 @@ fn read_stats() -> Vec<Time> {
     prt
 }
 
-pub fn populate_table_data() -> Vec<Vec<String>> {
-    let mut data: Vec<Vec<String>> = Vec::new();
+pub fn read_state() -> Vec<elma::Time> {
+    let mut prt = Vec::new();
 
-    // Read WR table data
-    let wr_tables = read_wr_tables();
+    let state = elma::state::State::load("state.dat").expect("Cannot open file: state.dat");
 
-    // Read PR data
-    let pr_table = read_stats();
-
-    let level_names = vec![
-        "Warm Up",
-        "Flat Track",
-        "Twin Peaks",
-        "Over and Under",
-        "Uphill Battle",
-        "Long Haul",
-        "Hi Flyer",
-        "Tag",
-        "Tunnel Terror",
-        "The Steppes",
-        "Gravity Ride",
-        "Islands in the Sky",
-        "Hill Legend",
-        "Loop-de-Loop",
-        "Serpents Tale",
-        "New Wave",
-        "Labyrinth",
-        "Spiral",
-        "Turnaround",
-        "Upside Down",
-        "Hangman",
-        "Slalom",
-        "Quick Round",
-        "Ramp Frenzy",
-        "Precarious",
-        "Circuitous",
-        "Shelf Life",
-        "Bounce Back",
-        "Headbanger",
-        "Pipe",
-        "Animal Farm",
-        "Steep Corner",
-        "Zig-Zag",
-        "Bumpy Journey",
-        "Labyrinth Pro",
-        "Fruit in the Den",
-        "Jaws",
-        "Curvaceous",
-        "Haircut",
-        "Double Trouble",
-        "Framework",
-        "Enduro",
-        "He He",
-        "Freefall",
-        "Sink",
-        "Bowling",
-        "Enigma",
-        "Downhill",
-        "What the Heck",
-        "Expert System",
-        "Tricks Abound",
-        "Hang Tight",
-        "Hooked",
-        "Apple Harvest",
-    ];
-    for (i, lev_name) in level_names.iter().enumerate() {
-        let t = &pr_table[i];
-        let lev: i32 = (i as i32) + 1;
-        let last_wr_beat = wr_tables
-            .iter()
-            .filter(|x| (x.lev == lev) && time::compare(t, &x.time))
-            .last();
-        let first_wr_not_beat = wr_tables
-            .iter()
-            .filter(|x| (x.lev == lev) && !time::compare(t, &x.time))
-            .nth(0);
-
-        let (last_table_beat, last_time_beat, last_kuski_beat) = if let Some(wr) = last_wr_beat {
-            (
-                wr.table.to_string(),
-                time::to_string(&wr.time),
-                wr.kuski.clone(),
-            )
-        } else {
-            ("-".into(), "-".into(), "-".into())
-        };
-
-        let (next_target, diff, next_kuski) = if let Some(wr) = first_wr_not_beat {
-            (
-                time::to_string(&wr.time),
-                "+".to_owned() + &time::to_string(&time::difference(t, &wr.time)),
-                wr.kuski.clone(),
-            )
-        } else {
-            ("-".into(), "-".into(), "-".into())
-        };
-
-        let lev_number = lev.to_string();
-        let pr = time::to_string(t);
-        data.push(vec![
-            lev_number,
-            (*lev_name).into(),
-            pr,
-            last_table_beat,
-            last_time_beat,
-            last_kuski_beat,
-            next_target,
-            diff,
-            next_kuski,
-        ]);
+    for lev in state.times.iter().take(54) {
+        if let Some(t) = lev.single.first() {
+            prt.push(t.time);
+        }
     }
-    data
+
+    prt
 }
 
-pub fn populate_table_data_alt() -> Vec<DataRow> {
+pub fn populate_table_data(r: &Fn() -> Vec<elma::Time>) -> Vec<DataRow> {
     let mut data: Vec<DataRow> = Vec::new();
 
     // Read WR table data
     let wr_tables = read_wr_tables();
 
     // Read PR data
-    let pr_table = read_stats();
+    let pr_table = r();
 
     let level_names = vec![
         "Warm Up",
@@ -255,11 +154,11 @@ pub fn populate_table_data_alt() -> Vec<DataRow> {
         let lev: i32 = (i as i32) + 1;
         let last_wr_beat = wr_tables
             .iter()
-            .filter(|x| (x.lev == lev) && time::compare(&t, &x.time))
+            .filter(|x| (x.lev == lev) && (t <= x.time))
             .last();
         let first_wr_not_beat = wr_tables
             .iter()
-            .filter(|x| (x.lev == lev) && !time::compare(&t, &x.time))
+            .filter(|x| (x.lev == lev) && !(t <= x.time))
             .nth(0);
 
         data.push(DataRow {

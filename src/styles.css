@@ -14,8 +14,9 @@ table {
 	margin: auto;
 	background-color: #505050;
 	border-collapse: collapse;
-	border: 1px solid black;
+	//border: 1px solid black;
 	table-layout: auto;
+	overflow: hidden;
 }
 
 th {
@@ -29,6 +30,11 @@ tr:hover {
 tr:nth-child(even)
 {
 	background-color: #404040;
+}
+
+tr:nth-child(even):hover
+{
+	background-color: #606060;
 }
 
 .godlike {
