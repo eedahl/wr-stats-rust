@@ -150,7 +150,15 @@ pub fn populate_table_data(r: &Fn() -> Vec<elma::Time>) -> Vec<DataRow> {
         "Apple Harvest",
     ];
     for (i, lev_name) in level_names.iter().enumerate() {
-        let t = pr_table[i].clone();
+        let t = {
+            if i < pr_table.len() {
+                pr_table[i]
+            } else {
+                elma::Time::from("10:00,00")
+            }
+        };
+
+        //let t = pr_table[i].clone();
         let lev: i32 = (i as i32) + 1;
         let last_wr_beat = wr_tables
             .iter()

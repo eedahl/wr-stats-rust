@@ -1,6 +1,4 @@
-extern crate csv;
 extern crate elma;
-extern crate htmlescape;
 extern crate notify;
 extern crate web_view;
 
@@ -44,6 +42,39 @@ pub struct DataRow {
 
 //TODO(edahl): fix no times read
 //TODO(edahl): read lev names from a file
+
+fn main() {
+    let html_table = create_html_table();
+    let html = create_html(html_table);
+
+    //TODO?(edahl): <link rel=\"stylesheet\" type=\"text/css\" href=\"/styles.css\">
+
+    let size = (900, 778);
+    let resizable = false;
+    let debug = true;
+    //let init_cb = |_webview| {};
+    let frontend_cb = |_webview: &mut _, _arg: &_, _userdata: &mut _| {};
+    let userdata = ();
+
+    web_view::run(
+        "WR-stats",
+        web_view::Content::Html(html),
+        Some(size),
+        resizable,
+        debug,
+        move |webview| {
+            webview.dispatch(|webview, userdata| {
+                //update_html(webview);
+                //if let Err(e) = watch(&move || update_html(webview)) {
+                //    println!("error: {:?}", e)
+                //}
+            })
+        },
+        frontend_cb,
+        userdata,
+    );
+}
+
 
 fn create_html_table() -> String {
     let data = io::populate_table_data(&io::read_state);
@@ -119,38 +150,6 @@ fn create_html(html_table: String) -> String {
         styles = html::inline_style(include_str!("styles.css")),
         table = html_table
     )
-}
-
-fn main() {
-    let html_table = create_html_table();
-    let html = create_html(html_table);
-
-    //TODO?(edahl): <link rel=\"stylesheet\" type=\"text/css\" href=\"/styles.css\">
-
-    let size = (900, 778);
-    let resizable = false;
-    let debug = true;
-    //let init_cb = |_webview| {};
-    let frontend_cb = |_webview: &mut _, _arg: &_, _userdata: &mut _| {};
-    let userdata = ();
-
-    web_view::run(
-        "WR-stats",
-        web_view::Content::Html(html),
-        Some(size),
-        resizable,
-        debug,
-        move |webview| {
-            webview.dispatch(|webview, userdata| {
-                //update_html(webview);
-                //if let Err(e) = watch(&move || update_html(webview)) {
-                //    println!("error: {:?}", e)
-                //}
-            })
-        },
-        frontend_cb,
-        userdata,
-    );
 }
 
 /*
