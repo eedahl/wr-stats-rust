@@ -1,5 +1,6 @@
 extern crate regex;
 
+#[derive(Clone)]
 pub struct Time {
     minutes: i32,
     seconds: i32,

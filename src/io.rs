@@ -1,9 +1,30 @@
 extern crate csv;
 
 use WR;
+use Targets;
+use DataRow;
 use time;
 use time::Time;
-use ::std::io::prelude::*;
+use std::io::prelude::*;
+
+pub fn read_targets_table() -> Vec<Targets> {
+    let mut tst = Vec::new();
+    let mut r = csv::Reader::from_file("targets.csv").unwrap();
+    for record in r.records() {
+        if let Ok(row) = record {
+            tst.push(Targets {
+                godlike: time::from_string(&row[0]),
+                legendary: time::from_string(&row[1]),
+                world_class: time::from_string(&row[2]),
+                professional: time::from_string(&row[3]),
+                good: time::from_string(&row[4]),
+                ok: time::from_string(&row[5]),
+                beginner: time::from_string(&row[6])
+            });
+        }
+    }
+    tst
+}
 
 fn read_wr_tables() -> Vec<WR> {
     let mut wrt = Vec::new();
@@ -160,6 +181,94 @@ pub fn populate_table_data() -> Vec<Vec<String>> {
             diff,
             next_kuski,
         ]);
+    }
+    data
+}
+
+pub fn populate_table_data_alt() -> Vec<DataRow> {
+    let mut data: Vec<DataRow> = Vec::new();
+
+    // Read WR table data
+    let wr_tables = read_wr_tables();
+
+    // Read PR data
+    let pr_table = read_stats();
+
+    let level_names = vec![
+        "Warm Up",
+        "Flat Track",
+        "Twin Peaks",
+        "Over and Under",
+        "Uphill Battle",
+        "Long Haul",
+        "Hi Flyer",
+        "Tag",
+        "Tunnel Terror",
+        "The Steppes",
+        "Gravity Ride",
+        "Islands in the Sky",
+        "Hill Legend",
+        "Loop-de-Loop",
+        "Serpents Tale",
+        "New Wave",
+        "Labyrinth",
+        "Spiral",
+        "Turnaround",
+        "Upside Down",
+        "Hangman",
+        "Slalom",
+        "Quick Round",
+        "Ramp Frenzy",
+        "Precarious",
+        "Circuitous",
+        "Shelf Life",
+        "Bounce Back",
+        "Headbanger",
+        "Pipe",
+        "Animal Farm",
+        "Steep Corner",
+        "Zig-Zag",
+        "Bumpy Journey",
+        "Labyrinth Pro",
+        "Fruit in the Den",
+        "Jaws",
+        "Curvaceous",
+        "Haircut",
+        "Double Trouble",
+        "Framework",
+        "Enduro",
+        "He He",
+        "Freefall",
+        "Sink",
+        "Bowling",
+        "Enigma",
+        "Downhill",
+        "What the Heck",
+        "Expert System",
+        "Tricks Abound",
+        "Hang Tight",
+        "Hooked",
+        "Apple Harvest",
+    ];
+    for (i, lev_name) in level_names.iter().enumerate() {
+        let t = pr_table[i].clone();
+        let lev: i32 = (i as i32) + 1;
+        let last_wr_beat = wr_tables
+            .iter()
+            .filter(|x| (x.lev == lev) && time::compare(&t, &x.time))
+            .last();
+        let first_wr_not_beat = wr_tables
+            .iter()
+            .filter(|x| (x.lev == lev) && !time::compare(&t, &x.time))
+            .nth(0);
+
+        data.push(DataRow{
+            lev_number: lev,
+            lev_name: lev_name.to_string(),
+            pr: t,
+            wr_beat: last_wr_beat.cloned(),
+            wr_not_beat: first_wr_not_beat.cloned(),
+        });
     }
     data
 }
