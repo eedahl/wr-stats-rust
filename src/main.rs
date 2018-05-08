@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 extern crate elma;
 extern crate web_view;
 //extern crate notify;
