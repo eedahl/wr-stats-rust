@@ -1,5 +1,5 @@
-extern crate web_view;
 extern crate elma;
+extern crate web_view;
 //extern crate notify;
 
 use web_view::WebView;
@@ -41,7 +41,7 @@ fn main() {
     let data = io::populate_table_data(&pr_table, &wr_tables);
     let targets_table = io::read_targets_table();
     let html_table = html::create_html_table(&data, &targets_table);
-    let html = html::create_html(html_table);
+    let html = html::create_html(&html_table);
 
     //TODO?(edahl): <link rel=\"stylesheet\" type=\"text/css\" href=\"/styles.css\">
     let size = (900, 778);
@@ -69,8 +69,8 @@ fn main() {
                     if let Ok(pr_table) = io::read_state() {
                         let data = io::populate_table_data(&pr_table, &wr_tables);
                         let html_table = html::create_html_table(&data, &targets_table);
-                        let html = html::create_html(html_table);
-                        webview.dispatch(move |webview, userdata| {
+                        let html = html::create_html(&html_table);
+                        webview.dispatch(move |webview, _userdata| {
                             update_html(webview, &html);
                         });
                     }
@@ -83,9 +83,10 @@ fn main() {
     );
 }
 
-fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: &String) {
+fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: &str) {
     webview.eval(&format!(
-        "document.documentElement.innerHTML={};", web_view::escape(html)
+        "document.documentElement.innerHTML={};",
+        web_view::escape(html)
     ));
 }
 
