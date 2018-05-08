@@ -1,9 +1,9 @@
-extern crate elma;
-extern crate notify;
 extern crate web_view;
+extern crate elma;
+//extern crate notify;
 
 use web_view::WebView;
-use notify::Watcher;
+//use notify::Watcher;
 
 mod html;
 mod io;
@@ -35,7 +35,6 @@ pub struct DataRow {
 }
 
 //TODO(edahl): read lev names from a file
-
 fn main() {
     let pr_table = io::read_state().unwrap();
     let wr_tables = io::read_wr_tables();
@@ -68,18 +67,11 @@ fn main() {
 
                 loop {
                     if let Ok(pr_table) = io::read_state() {
-                        println!("penic");
                         let data = io::populate_table_data(&pr_table, &wr_tables);
                         let html_table = html::create_html_table(&data, &targets_table);
-                        let mut html = html::create_html(html_table);
-                        html = html.replace(r#"""#, r#"\""#)
-                            .replace("/", r"\/")
-                            .replace(r"'", r"\'")
-                            .replace("\n", r"\n")
-                            .replace("\r", r"\r");
-
-                        webview.dispatch(|webview, userdata| {
-                            update_html(webview, html.clone());
+                        let html = html::create_html(html_table);
+                        webview.dispatch(move |webview, userdata| {
+                            update_html(webview, &html);
                         });
                     }
                     std::thread::sleep(std::time::Duration::from_secs(5));
@@ -91,10 +83,9 @@ fn main() {
     );
 }
 
-fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: String) {
+fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: &String) {
     webview.eval(&format!(
-        "document.documentElement.innerHTML=\"{}\";",
-        html //web_view::escape(&html)
+        "document.documentElement.innerHTML={};", web_view::escape(html)
     ));
 }
 
