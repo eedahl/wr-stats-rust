@@ -79,10 +79,6 @@ fn table_header(h: &[String]) -> String {
     h.iter().map(|x| format!("<th>{}</th>", *x)).collect()
 }
 
-fn table_data(h: &[String]) -> String {
-    h.iter().map(|x| format!("<td>{}</td>", *x)).collect()
-}
-
 fn table_data_s(s: &str) -> String {
     format!("<td>{}</td>", s)
 }
