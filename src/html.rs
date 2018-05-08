@@ -15,6 +15,8 @@ pub fn create_html_table(data: &[DataRow], targets_table: &[Targets]) -> String 
     let mut html_table = String::new();
     html_table.push_str(&inline_tr(&table_header(&headers)));
 
+    // currently, if you have beaten all logged wrs, time is displayed red
+    // current wrs, or the last registered wr, is not coloured red
     for (i, r) in data.iter().enumerate() {
         let mut row = String::new();
         row.push_str(&table_data_s(&format!(
@@ -22,9 +24,10 @@ pub fn create_html_table(data: &[DataRow], targets_table: &[Targets]) -> String 
             &r.lev_number.to_string(),
             &r.lev_name
         )));
-        row.push_str(&time_to_tagged_td(&r.pr, &targets_table[i]));
+    
 
         if let Some(ref wr) = r.wr_not_beat {
+            row.push_str(&time_to_tagged_td(&r.pr, &targets_table[i]));
             row.push_str(&time_to_tagged_td(&wr.time, &targets_table[i]));
             row.push_str(&time_to_diff(&(r.pr - wr.time)));
             row.push_str(&table_data_s(&format!(
@@ -33,6 +36,7 @@ pub fn create_html_table(data: &[DataRow], targets_table: &[Targets]) -> String 
                 table_num(&wr.table.to_string())
             )));
         } else {
+            row.push_str(&time_to_wr_tagged_td(&r.pr));
             row.push_str(&table_data_s(&"-".to_string()));
             row.push_str(&table_data_s(&"-".to_string()));
             row.push_str(&table_data_s(&"-".to_string()));
@@ -102,6 +106,10 @@ fn inline_style(s: &str) -> String {
 
 fn time_to_diff(t: &Time) -> String {
     format!("<td>+{}</td>", t.to_string())
+}
+
+fn time_to_wr_tagged_td(t: &Time) -> String {
+    format!("<td class=\"wr\">{}</td>", t.to_string())
 }
 
 fn time_to_tagged_td(t: &Time, tar: &Targets) -> String {

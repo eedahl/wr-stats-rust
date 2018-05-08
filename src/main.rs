@@ -34,13 +34,18 @@ pub struct DataRow {
     wr_not_beat: Option<WR>,
 }
 
+//TODO(edahl): fancy icon
+//TODO(edahl): notify
+//TODO(edahl): tt, target tt, diff
 //TODO(edahl): read lev names from a file
 fn main() {
-    let pr_table = io::read_state().unwrap();
-    let wr_tables = io::read_wr_tables();
+    let wr_tables = io::load_wr_tables();
+    let targets_table = io::load_targets_table();
+
+    let pr_table = io::load_state().expect("Could not load file: state.dat");
     let data = io::populate_table_data(&pr_table, &wr_tables);
-    let targets_table = io::read_targets_table();
     let html_table = html::create_html_table(&data, &targets_table);
+
     let html = html::create_html(&html_table);
 
     //TODO?(edahl): <link rel=\"stylesheet\" type=\"text/css\" href=\"/styles.css\">
@@ -59,16 +64,11 @@ fn main() {
         debug,
         move |webview| {
             std::thread::spawn(move || {
-                //read wr_tables
-                let wr_tables = io::read_wr_tables();
-
-                //read targets_table
-                let targets_table = io::read_targets_table();
-
                 loop {
                     if let Ok(pr_table) = io::read_state() {
                         let data = io::populate_table_data(&pr_table, &wr_tables);
                         let html_table = html::create_html_table(&data, &targets_table);
+
                         let html = html::create_html(&html_table);
                         webview.dispatch(move |webview, _userdata| {
                             update_html(webview, &html);

@@ -7,9 +7,9 @@ use DataRow;
 use std::io::prelude::*;
 use elma::Time;
 
-pub fn read_targets_table() -> Vec<Targets> {
+pub fn load_targets_table() -> Vec<Targets> {
     let mut tst = Vec::new();
-    let mut r = csv::Reader::from_file("targets.csv").unwrap();
+    let mut r = csv::Reader::from_file("targets.csv").expect("Could not read file: targets.csv");
     for record in r.records() {
         if let Ok(row) = record {
             tst.push(Targets {
@@ -26,9 +26,9 @@ pub fn read_targets_table() -> Vec<Targets> {
     tst
 }
 
-pub fn read_wr_tables() -> Vec<WR> {
+pub fn load_wr_tables() -> Vec<WR> {
     let mut wrt = Vec::new();
-    let mut r = csv::Reader::from_file("2018-04-19_elma_wrs.csv").unwrap();
+    let mut r = csv::Reader::from_file("elma_wrs.csv").expect("Could not read file: elma_wrs.csv");
     for record in r.records() {
         let row = record.unwrap();
         wrt.push(WR {
@@ -41,7 +41,7 @@ pub fn read_wr_tables() -> Vec<WR> {
     wrt
 }
 
-pub fn read_state() -> Result<Vec<Time>, elma::ElmaError> {
+pub fn load_state() -> Result<Vec<Time>, elma::ElmaError> {
     let mut prt = Vec::new();
 
     let state = elma::state::State::load("state.dat")?;
@@ -147,10 +147,10 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
 pub fn read_stats() -> Vec<Time> {
     let mut prt = Vec::new();
 
-    let mut f = ::std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
+    let mut f = ::std::fs::File::open("stats.txt").expect("Could not open file: stats.txt");
     let mut c = String::new();
     f.read_to_string(&mut c)
-        .expect("Cannot read file: stats.txt");
+        .expect("Could not read file: stats.txt");
 
     let mut level_counter = 0;
     let mut level_found = false;

@@ -37,6 +37,10 @@ tr:nth-child(even):hover
 	background-color: #606060;
 }
 
+.wr {
+	color: #ff0000;
+}
+
 .godlike {
 	color: #aa43dd;
 }
