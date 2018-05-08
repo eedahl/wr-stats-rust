@@ -24,7 +24,6 @@ pub fn create_html_table(data: &[DataRow], targets_table: &[Targets]) -> String 
             &r.lev_number.to_string(),
             &r.lev_name
         )));
-    
 
         if let Some(ref wr) = r.wr_not_beat {
             row.push_str(&time_to_tagged_td(&r.pr, &targets_table[i]));
@@ -62,21 +61,32 @@ pub fn create_html_table(data: &[DataRow], targets_table: &[Targets]) -> String 
     html_table
 }
 
-pub fn create_html(html_table: &str) -> String {
+pub fn create_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
     format!(
         r#"
             <!doctype html>
             <html>
                 <head>
+                    <link rel="icon" src="wr-stats.png">
                     {styles}
                 </head>
                 <body>
                     {table}
+                    <table id="tt_table">
+                        <tr>
+                            <td id="p_tt" class="tt">Personal total time: {p_tt}</td>
+                            <td id="t_tt" class="tt">Target total time: {t_tt}</td>
+                            <td id="diff" class="tt">Difference: {diff}</td>
+                        </tr>
+                    </table>
                 </body>
             </html>
             "#,
         styles = inline_style(include_str!("styles.css")),
-        table = html_table
+        table = html_table,
+        p_tt = p_tt,
+        t_tt = t_tt,
+        diff = &(*p_tt - *t_tt)
     )
 }
 

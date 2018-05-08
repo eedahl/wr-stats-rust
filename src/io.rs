@@ -116,6 +116,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
         "Hooked",
         "Apple Harvest",
     ];
+
     for (i, lev_name) in level_names.iter().enumerate() {
         //this if is unnecessary but ...
         let t = if i < pr_table.len() {
@@ -123,6 +124,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
         } else {
             Time::from("10:00,00")
         };
+
         let lev = i as i32 + 1;
         let last_wr_beat = wr_tables
             .iter()

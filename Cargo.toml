@@ -1,7 +1,8 @@
 [package]
 name = "wr-stats"
-version = "0.3.0"
+version = "0.3.5"
 authors = ["Eivind E. Dahl <eivind.dahl@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 csv = "*"
@@ -9,3 +10,6 @@ regex = "*"
 elma = "*"
 web-view = "*"
 notify = "*"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = { git = "https://github.com/mxre/winres" }

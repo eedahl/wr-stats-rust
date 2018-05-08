@@ -2,6 +2,7 @@ extern crate elma;
 extern crate web_view;
 //extern crate notify;
 
+use elma::Time;
 use web_view::WebView;
 //use notify::Watcher;
 
@@ -34,22 +35,41 @@ pub struct DataRow {
     wr_not_beat: Option<WR>,
 }
 
-//TODO(edahl): fancy icon
+fn compute_tts(d: &[DataRow]) -> (elma::Time, elma::Time) {
+    let mut p_tt = Time::from("00:00,00");
+    let mut t_tt = Time::from("00:00,00");
+
+    for r in d {
+        p_tt = p_tt + r.pr;
+
+        t_tt = t_tt + if let Some(wr) = r.wr_not_beat.clone() {
+            wr.time
+        } else {
+            r.pr
+        };
+    }
+
+    (p_tt, t_tt)
+}
+
 //TODO(edahl): notify
-//TODO(edahl): tt, target tt, diff
+//TODO(edahl): diff
 //TODO(edahl): read lev names from a file
+//TODO(edahl): stats.txt fallback
 fn main() {
     let wr_tables = io::load_wr_tables();
     let targets_table = io::load_targets_table();
 
     let pr_table = io::load_state().expect("Could not load file: state.dat");
+
+    //repeat code
     let data = io::populate_table_data(&pr_table, &wr_tables);
     let html_table = html::create_html_table(&data, &targets_table);
-
-    let html = html::create_html(&html_table);
+    let (p_tt, t_tt) = compute_tts(&data);
+    let html = html::create_html(&html_table, &p_tt, &t_tt);
 
     //TODO?(edahl): <link rel=\"stylesheet\" type=\"text/css\" href=\"/styles.css\">
-    let size = (900, 778);
+    let size = (900, 790);
     let resizable = true;
     let debug = true;
     //let init_cb = |_webview| {};
@@ -57,7 +77,7 @@ fn main() {
     let userdata = ();
 
     web_view::run(
-        "WR-stats",
+        "WR Stats",
         web_view::Content::Html(html),
         Some(size),
         resizable,
@@ -65,11 +85,14 @@ fn main() {
         move |webview| {
             std::thread::spawn(move || {
                 loop {
-                    if let Ok(pr_table) = io::read_state() {
+                    if let Ok(pr_table) = io::load_state() {
+
+                        //repeat code
                         let data = io::populate_table_data(&pr_table, &wr_tables);
                         let html_table = html::create_html_table(&data, &targets_table);
+                        let (p_tt, t_tt) = compute_tts(&data);
+                        let html = html::create_html(&html_table, &p_tt, &t_tt);
 
-                        let html = html::create_html(&html_table);
                         webview.dispatch(move |webview, _userdata| {
                             update_html(webview, &html);
                         });

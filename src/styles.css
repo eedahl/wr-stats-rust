@@ -14,9 +14,27 @@ table {
 	margin: auto;
 	background-color: #505050;
 	border-collapse: collapse;
-	//border: 1px solid black;
-	table-layout: auto;
 	overflow: hidden;
+}
+
+.tt_table {
+	margin-top: 10px;
+	text-align: center;
+	border: 1px solid black;
+	table-layout: auto;
+	border-collapse: separate;
+}
+
+#p_tt {
+	text-align: center;
+}
+
+#t_tt {
+	text-align: center;
+}
+
+#diff {
+	text-align: center;
 }
 
 th {
@@ -32,7 +50,7 @@ tr:nth-child(even)
 	background-color: #404040;
 }
 
-tr:nth-child(even):hover
+tr:hover
 {
 	background-color: #606060;
 }
