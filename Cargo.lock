@@ -53,8 +53,8 @@ dependencies = [
 
 [[package]]
 name = "elma"
-version = "0.1.9-alpha.0"
-source = "git+https://github.com/hexjelly/elma-rust#1e4fe9bdb62b4b439c8a04fca8614187f4fedbcb"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -397,7 +397,7 @@ name = "wr-stats"
 version = "0.3.0"
 dependencies = [
  "csv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "elma 0.1.9-alpha.0 (git+https://github.com/hexjelly/elma-rust)",
+ "elma 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "notify 4.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "web-view 0.2.1 (git+https://github.com/Boscop/web-view)",
@@ -422,7 +422,7 @@ dependencies = [
 "checksum cc 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)" = "0ebb87d1116151416c0cf66a0e3fb6430cccd120fd6300794b4dfaa050ac40ba"
 "checksum cfg-if 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "405216fd8fe65f718daa7102ea808a946b6ce40c742998fbfd3463645552de18"
 "checksum csv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7ef22b37c7a51c564a365892c012dc0271221fdcc64c69b19ba4d6fa8bd96d9c"
-"checksum elma 0.1.9-alpha.0 (git+https://github.com/hexjelly/elma-rust)" = "<none>"
+"checksum elma 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "638a92663409a45a92232fade3e181b7ceea31cdc3499ca5894011db56d74bf0"
 "checksum filetime 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)" = "714653f3e34871534de23771ac7b26e999651a0a228f47beb324dfdf1dd4b10f"
 "checksum fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2fad85553e09a6f881f739c29f0b00b0f01357c743266d478b68951ce23285f3"
 "checksum fsevent 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)" = "c4bbbf71584aeed076100b5665ac14e3d85eeb31fdbb45fbd41ef9a682b5ec05"

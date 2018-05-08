@@ -5,6 +5,7 @@ use WR;
 use Targets;
 use DataRow;
 use std::io::prelude::*;
+use elma::Time;
 
 pub fn read_targets_table() -> Vec<Targets> {
     let mut tst = Vec::new();
@@ -12,13 +13,13 @@ pub fn read_targets_table() -> Vec<Targets> {
     for record in r.records() {
         if let Ok(row) = record {
             tst.push(Targets {
-                godlike: elma::Time::from(row[0].as_ref()),
-                legendary: elma::Time::from(row[1].as_ref()),
-                world_class: elma::Time::from(row[2].as_ref()),
-                professional: elma::Time::from(row[3].as_ref()),
-                good: elma::Time::from(row[4].as_ref()),
-                ok: elma::Time::from(row[5].as_ref()),
-                beginner: elma::Time::from(row[6].as_ref()),
+                godlike: Time::from(&row[0]),
+                legendary: Time::from(&row[1]),
+                world_class: Time::from(&row[2]),
+                professional: Time::from(&row[3]),
+                good: Time::from(&row[4]),
+                ok: Time::from(&row[5]),
+                beginner: Time::from(&row[6]),
             });
         }
     }
@@ -33,14 +34,14 @@ pub fn read_wr_tables() -> Vec<WR> {
         wrt.push(WR {
             table: row[0].parse::<i32>().unwrap(),
             lev: row[1].parse::<i32>().unwrap(),
-            time: elma::Time::from(row[3].as_ref()),
+            time: Time::from(&row[3]),
             kuski: row[4].to_string(),
         });
     }
     wrt
 }
 
-pub fn read_state() -> Result<Vec<elma::Time>, elma::ElmaError> {
+pub fn read_state() -> Result<Vec<Time>, elma::ElmaError> {
     let mut prt = Vec::new();
 
     let state = elma::state::State::load("state.dat")?;
@@ -49,14 +50,14 @@ pub fn read_state() -> Result<Vec<elma::Time>, elma::ElmaError> {
         if let Some(t) = lev.single.first() {
             prt.push(t.time);
         } else {
-            prt.push(elma::Time::from("10:00,00"))
+            prt.push(Time::from("10:00,00"))
         }
     }
 
     Ok(prt)
 }
 
-pub fn populate_table_data(pr_table: &Vec<elma::Time>, wr_tables: &Vec<WR>) -> Vec<DataRow> {
+pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {
     let mut data: Vec<DataRow> = Vec::new();
 
     let level_names = vec![
@@ -118,11 +119,11 @@ pub fn populate_table_data(pr_table: &Vec<elma::Time>, wr_tables: &Vec<WR>) -> V
     for (i, lev_name) in level_names.iter().enumerate() {
         //this if is unnecessary but ...
         let t = if i < pr_table.len() {
-            pr_table[i].clone()
+            pr_table[i]
         } else {
-            elma::Time::from("10:00,00")
+            Time::from("10:00,00")
         };
-        let lev: i32 = (i as i32) + 1;
+        let lev = i as i32 + 1;
         let last_wr_beat = wr_tables
             .iter()
             .filter(|x| (x.lev == lev) && (t <= x.time))
@@ -143,8 +144,7 @@ pub fn populate_table_data(pr_table: &Vec<elma::Time>, wr_tables: &Vec<WR>) -> V
     data
 }
 
-
-pub fn read_stats() -> Vec<elma::Time> {
+pub fn read_stats() -> Vec<Time> {
     let mut prt = Vec::new();
 
     let mut f = ::std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
@@ -158,7 +158,7 @@ pub fn read_stats() -> Vec<elma::Time> {
         let mut data: Vec<&str> = line.trim().split_whitespace().collect();
 
         if data.len() != 0 && level_found {
-            prt.push(elma::Time::from(data[0].as_ref()));
+            prt.push(Time::from(data[0].as_ref()));
             level_counter += 1;
             level_found = false;
         }
