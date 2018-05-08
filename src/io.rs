@@ -25,7 +25,7 @@ pub fn read_targets_table() -> Vec<Targets> {
     tst
 }
 
-fn read_wr_tables() -> Vec<WR> {
+pub fn read_wr_tables() -> Vec<WR> {
     let mut wrt = Vec::new();
     let mut r = csv::Reader::from_file("2018-04-19_elma_wrs.csv").unwrap();
     for record in r.records() {
@@ -40,58 +40,24 @@ fn read_wr_tables() -> Vec<WR> {
     wrt
 }
 
-pub fn read_stats() -> Vec<elma::Time> {
+pub fn read_state() -> Result<Vec<elma::Time>, elma::ElmaError> {
     let mut prt = Vec::new();
 
-    let mut f = ::std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
-    let mut c = String::new();
-    f.read_to_string(&mut c)
-        .expect("Cannot read file: stats.txt");
-
-    let mut level_counter = 0;
-    let mut level_found = false;
-    for line in c.lines() {
-        let mut data: Vec<&str> = line.trim().split_whitespace().collect();
-
-        if data.len() != 0 && level_found {
-            prt.push(elma::Time::from(data[0].as_ref()));
-            level_counter += 1;
-            level_found = false;
-        }
-
-        if data.len() != 0 && data[0] == "Level" {
-            level_found = true;
-        }
-
-        if level_counter == 54 {
-            break;
-        }
-    }
-    prt
-}
-
-pub fn read_state() -> Vec<elma::Time> {
-    let mut prt = Vec::new();
-
-    let state = elma::state::State::load("state.dat").expect("Cannot open file: state.dat");
+    let state = elma::state::State::load("state.dat")?;
 
     for lev in state.times.iter().take(54) {
         if let Some(t) = lev.single.first() {
             prt.push(t.time);
+        } else {
+            prt.push(elma::Time::from("10:00,00"))
         }
     }
 
-    prt
+    Ok(prt)
 }
 
-pub fn populate_table_data(r: &Fn() -> Vec<elma::Time>) -> Vec<DataRow> {
+pub fn populate_table_data(pr_table: &Vec<elma::Time>, wr_tables: &Vec<WR>) -> Vec<DataRow> {
     let mut data: Vec<DataRow> = Vec::new();
-
-    // Read WR table data
-    let wr_tables = read_wr_tables();
-
-    // Read PR data
-    let pr_table = r();
 
     let level_names = vec![
         "Warm Up",
@@ -150,15 +116,12 @@ pub fn populate_table_data(r: &Fn() -> Vec<elma::Time>) -> Vec<DataRow> {
         "Apple Harvest",
     ];
     for (i, lev_name) in level_names.iter().enumerate() {
-        let t = {
-            if i < pr_table.len() {
-                pr_table[i]
-            } else {
-                elma::Time::from("10:00,00")
-            }
+        //this if is unnecessary but ...
+        let t = if i < pr_table.len() {
+            pr_table[i].clone()
+        } else {
+            elma::Time::from("10:00,00")
         };
-
-        //let t = pr_table[i].clone();
         let lev: i32 = (i as i32) + 1;
         let last_wr_beat = wr_tables
             .iter()
@@ -178,4 +141,35 @@ pub fn populate_table_data(r: &Fn() -> Vec<elma::Time>) -> Vec<DataRow> {
         });
     }
     data
+}
+
+
+pub fn read_stats() -> Vec<elma::Time> {
+    let mut prt = Vec::new();
+
+    let mut f = ::std::fs::File::open("stats.txt").expect("Cannot open file: stats.txt");
+    let mut c = String::new();
+    f.read_to_string(&mut c)
+        .expect("Cannot read file: stats.txt");
+
+    let mut level_counter = 0;
+    let mut level_found = false;
+    for line in c.lines() {
+        let mut data: Vec<&str> = line.trim().split_whitespace().collect();
+
+        if data.len() != 0 && level_found {
+            prt.push(elma::Time::from(data[0].as_ref()));
+            level_counter += 1;
+            level_found = false;
+        }
+
+        if data.len() != 0 && data[0] == "Level" {
+            level_found = true;
+        }
+
+        if level_counter == 54 {
+            break;
+        }
+    }
+    prt
 }

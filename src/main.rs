@@ -3,14 +3,8 @@ extern crate notify;
 extern crate web_view;
 
 use web_view::WebView;
-
 use notify::Watcher;
 
-//use elma::state::*;
-//let state = State::load("state.dat").unwrap();
-
-//mod time;
-//use time::Time;
 mod html;
 mod io;
 
@@ -40,17 +34,19 @@ pub struct DataRow {
     wr_not_beat: Option<WR>,
 }
 
-//TODO(edahl): fix no times read
 //TODO(edahl): read lev names from a file
 
 fn main() {
-    let html_table = create_html_table();
-    let html = create_html(html_table);
+    let pr_table = io::read_state().unwrap();
+    let wr_tables = io::read_wr_tables();
+    let data = io::populate_table_data(&pr_table, &wr_tables);
+    let targets_table = io::read_targets_table();
+    let html_table = html::create_html_table(&data, &targets_table);
+    let html = html::create_html(html_table);
 
     //TODO?(edahl): <link rel=\"stylesheet\" type=\"text/css\" href=\"/styles.css\">
-
     let size = (900, 778);
-    let resizable = false;
+    let resizable = true;
     let debug = true;
     //let init_cb = |_webview| {};
     let frontend_cb = |_webview: &mut _, _arg: &_, _userdata: &mut _| {};
@@ -63,93 +59,43 @@ fn main() {
         resizable,
         debug,
         move |webview| {
-            webview.dispatch(|webview, userdata| {
-                //update_html(webview);
-                //if let Err(e) = watch(&move || update_html(webview)) {
-                //    println!("error: {:?}", e)
-                //}
-            })
+            std::thread::spawn(move || {
+                //read wr_tables
+                let wr_tables = io::read_wr_tables();
+
+                //read targets_table
+                let targets_table = io::read_targets_table();
+
+                loop {
+                    if let Ok(pr_table) = io::read_state() {
+                        println!("penic");
+                        let data = io::populate_table_data(&pr_table, &wr_tables);
+                        let html_table = html::create_html_table(&data, &targets_table);
+                        let mut html = html::create_html(html_table);
+                        html = html.replace(r#"""#, r#"\""#)
+                            .replace("/", r"\/")
+                            .replace(r"'", r"\'")
+                            .replace("\n", r"\n")
+                            .replace("\r", r"\r");
+
+                        webview.dispatch(|webview, userdata| {
+                            update_html(webview, html.clone());
+                        });
+                    }
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                }
+            });
         },
         frontend_cb,
         userdata,
     );
 }
 
-
-fn create_html_table() -> String {
-    let data = io::populate_table_data(&io::read_state);
-    let targets_table = io::read_targets_table();
-
-    let headers = vec![
-        "Level".to_string(),
-        "PR".to_string(),
-        "Target".to_string(),
-        "Diff".to_string(),
-        "Kuski to beat".to_string(),
-        "Time beat".to_string(),
-        "Kuski beat".to_string(),
-    ];
-    let mut html_table = String::new();
-    html_table.push_str(&html::inline_tr(html::table_header(headers)));
-
-    for (i, r) in data.iter().enumerate() {
-        html_table.push_str(&html::table_data_s(&format!(
-            "{}. {}",
-            &r.lev_number.to_string(),
-            &r.lev_name
-        )));
-        html_table.push_str(&html::time_to_tagged_td(&r.pr, &targets_table[i]));
-
-        if let Some(wr) = r.wr_not_beat.clone() {
-            html_table.push_str(&html::time_to_tagged_td(&wr.time, &targets_table[i]));
-            html_table.push_str(&html::time_to_diff(&(r.pr - wr.time)));
-            html_table.push_str(&html::table_data_s(&format!(
-                "{} {}",
-                wr.kuski,
-                html::table_num(wr.table.to_string())
-            )));
-        } else {
-            html_table.push_str(&html::table_data_s(&"-".to_string()));
-            html_table.push_str(&html::table_data_s(&"-".to_string()));
-            html_table.push_str(&html::table_data_s(&"-".to_string()));
-        }
-
-        if let Some(wr) = r.wr_beat.clone() {
-            html_table.push_str(&html::time_to_tagged_td(&wr.time, &targets_table[i]));
-            html_table.push_str(&html::table_data_s(&format!(
-                "{} {}",
-                wr.kuski,
-                html::table_num(wr.table.to_string())
-            )));
-        } else {
-            html_table.push_str(&html::table_data_s(&"-".to_string()));
-            html_table.push_str(&html::table_data_s(&"-".to_string()));
-        }
-
-        html_table = html::inline_tr(html_table);
-    }
-
-    html_table = html::inline_table(html_table);
-
-    html_table
-}
-
-fn create_html(html_table: String) -> String {
-    format!(
-        r#"
-            <!doctype html>
-            <html>
-                <head>
-                    {styles}
-                </head>
-                <body>
-                    {table}
-                </body>
-            </html>
-            "#,
-        styles = html::inline_style(include_str!("styles.css")),
-        table = html_table
-    )
+fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: String) {
+    webview.eval(&format!(
+        "document.documentElement.innerHTML=\"{}\";",
+        html //web_view::escape(&html)
+    ));
 }
 
 /*
@@ -179,15 +125,3 @@ fn watch(f: &Fn() -> ()) -> notify::Result<()> {
     }
 }
 */
-
-fn update_html<'a, T>(webview: &mut WebView<'a, T>) {
-    let html_table = create_html_table();
-    let mut html = create_html(html_table);
-    // Hacking a JSEscapeString equivalent.
-    html = html.replace(r#"""#, r#"\""#)
-        .replace("/", r"\/")
-        .replace(r"'", r"\'")
-        .replace("\n", r"\n")
-        .replace("\r", r"\r");
-    webview.eval(&format!("document.documentElement.innerHTML=\"{}\";", html));
-}

@@ -345,8 +345,8 @@ dependencies = [
 
 [[package]]
 name = "web-view"
-version = "0.2.0"
-source = "git+https://github.com/Boscop/web-view#8ad43e4708b964440300c53c9242e4a746139dcd"
+version = "0.2.1"
+source = "git+https://github.com/Boscop/web-view#58d2ec4068f105e19e9274e702a7b4472e1c18e5"
 dependencies = [
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoding 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -356,7 +356,7 @@ dependencies = [
 [[package]]
 name = "webview-sys"
 version = "0.1.0"
-source = "git+https://github.com/Boscop/web-view#8ad43e4708b964440300c53c9242e4a746139dcd"
+source = "git+https://github.com/Boscop/web-view#58d2ec4068f105e19e9274e702a7b4472e1c18e5"
 dependencies = [
  "bitflags 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "cc 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -394,13 +394,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "wr-stats"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "csv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "elma 0.1.9-alpha.0 (git+https://github.com/hexjelly/elma-rust)",
  "notify 4.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "web-view 0.2.0 (git+https://github.com/Boscop/web-view)",
+ "web-view 0.2.1 (git+https://github.com/Boscop/web-view)",
 ]
 
 [[package]]
@@ -458,7 +458,7 @@ dependencies = [
 "checksum utf8-ranges 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "662fab6525a98beff2921d7f61a39e7d59e0b425ebc7d0d9e66d316e55124122"
 "checksum void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
 "checksum walkdir 2.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "63636bd0eb3d00ccb8b9036381b526efac53caf112b7783b730ab3f8e44da369"
-"checksum web-view 0.2.0 (git+https://github.com/Boscop/web-view)" = "<none>"
+"checksum web-view 0.2.1 (git+https://github.com/Boscop/web-view)" = "<none>"
 "checksum webview-sys 0.1.0 (git+https://github.com/Boscop/web-view)" = "<none>"
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "04e3bd221fcbe8a271359c04f21a76db7d0c6028862d1bb5512d85e1e2eb5bb3"
