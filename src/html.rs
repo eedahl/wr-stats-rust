@@ -16,40 +16,41 @@ pub fn create_html_table(data: &[DataRow], targets_table: &[Targets]) -> String 
     html_table.push_str(&inline_tr(&table_header(&headers)));
 
     for (i, r) in data.iter().enumerate() {
-        html_table.push_str(&table_data_s(&format!(
+        let mut row = String::new();
+        row.push_str(&table_data_s(&format!(
             "{}. {}",
             &r.lev_number.to_string(),
             &r.lev_name
         )));
-        html_table.push_str(&time_to_tagged_td(&r.pr, &targets_table[i]));
+        row.push_str(&time_to_tagged_td(&r.pr, &targets_table[i]));
 
         if let Some(ref wr) = r.wr_not_beat {
-            html_table.push_str(&time_to_tagged_td(&wr.time, &targets_table[i]));
-            html_table.push_str(&time_to_diff(&(r.pr - wr.time)));
-            html_table.push_str(&table_data_s(&format!(
+            row.push_str(&time_to_tagged_td(&wr.time, &targets_table[i]));
+            row.push_str(&time_to_diff(&(r.pr - wr.time)));
+            row.push_str(&table_data_s(&format!(
                 "{} {}",
                 wr.kuski,
                 table_num(&wr.table.to_string())
             )));
         } else {
-            html_table.push_str(&table_data_s(&"-".to_string()));
-            html_table.push_str(&table_data_s(&"-".to_string()));
-            html_table.push_str(&table_data_s(&"-".to_string()));
+            row.push_str(&table_data_s(&"-".to_string()));
+            row.push_str(&table_data_s(&"-".to_string()));
+            row.push_str(&table_data_s(&"-".to_string()));
         }
 
         if let Some(ref wr) = r.wr_beat {
-            html_table.push_str(&time_to_tagged_td(&wr.time, &targets_table[i]));
-            html_table.push_str(&table_data_s(&format!(
+            row.push_str(&time_to_tagged_td(&wr.time, &targets_table[i]));
+            row.push_str(&table_data_s(&format!(
                 "{} {}",
                 wr.kuski,
                 table_num(&wr.table.to_string())
             )));
         } else {
-            html_table.push_str(&table_data_s(&"-".to_string()));
-            html_table.push_str(&table_data_s(&"-".to_string()));
+            row.push_str(&table_data_s(&"-".to_string()));
+            row.push_str(&table_data_s(&"-".to_string()));
         }
 
-        html_table = inline_tr(&html_table);
+        html_table.push_str(&inline_tr(&row));
     }
 
     html_table = inline_table(&html_table);

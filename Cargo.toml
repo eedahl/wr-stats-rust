@@ -7,5 +7,5 @@ authors = ["Eivind E. Dahl <eivind.dahl@gmail.com>"]
 csv = "*"
 regex = "*"
 elma = "*"
-web-view = { git = "https://github.com/Boscop/web-view", branch = "master" }
+web-view = "*"
 notify = "*"
