@@ -80,10 +80,6 @@ fn table_header(h: Vec<String>) -> String {
     h.iter().map(|x| format!("<th>{}</th>", *x)).collect()
 }
 
-fn table_data(h: Vec<String>) -> String {
-    h.iter().map(|x| format!("<td>{}</td>", *x)).collect()
-}
-
 fn table_data_s(s: &String) -> String {
     format!("<td>{}</td>", s)
 }
