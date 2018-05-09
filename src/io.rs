@@ -4,7 +4,6 @@ extern crate elma;
 use WR;
 use Targets;
 use DataRow;
-use std::io::prelude::*;
 use elma::Time;
 
 pub fn load_targets_table() -> Vec<Targets> {
@@ -28,9 +27,10 @@ pub fn load_targets_table() -> Vec<Targets> {
 
 pub fn load_wr_tables() -> Vec<WR> {
     let mut wrt = Vec::new();
+
     let mut r = csv::Reader::from_file("elma_wrs.csv").expect("Could not read file: elma_wrs.csv");
-    for record in r.records() {
-        let row = record.unwrap();
+
+    for row in r.records().map(|x| x.unwrap()) {
         wrt.push(WR {
             table: row[0].parse::<i32>().unwrap(),
             lev: row[1].parse::<i32>().unwrap(),
@@ -118,13 +118,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
     ];
 
     for (i, lev_name) in level_names.iter().enumerate() {
-        //this if is unnecessary but ...
-        let t = if i < pr_table.len() {
-            pr_table[i]
-        } else {
-            Time::from("10:00,00")
-        };
-
+        let t = pr_table[i];
         let lev = i as i32 + 1;
         let last_wr_beat = wr_tables
             .iter()
@@ -146,6 +140,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
     data
 }
 
+/*
 pub fn read_stats() -> Vec<Time> {
     let mut prt = Vec::new();
 
@@ -175,3 +170,4 @@ pub fn read_stats() -> Vec<Time> {
     }
     prt
 }
+*/
