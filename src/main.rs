@@ -1,14 +1,13 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 extern crate elma;
 extern crate notify;
 extern crate web_view;
 
 use elma::Time;
 use web_view::WebView;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
 use std::time::Duration;
-use std::time::Duration::from_secs;
 
 mod html;
 mod io;
@@ -120,13 +119,14 @@ fn main() {
         move |webview| {
             std::thread::spawn(move || {
                 let (tx, rx) = channel();
-                let mut watcher: RecommendedWatcher = Watcher::new(tx, from_secs(1)).unwrap();
+                let mut watcher: RecommendedWatcher =
+                    Watcher::new(tx, Duration::from_secs(1)).unwrap();
                 watcher
-                    .watch("state.dat", notify::RecursiveMode::NonRecursive)
+                    .watch("state.dat", RecursiveMode::NonRecursive)
                     .unwrap();
                 loop {
                     match rx.recv() {
-                        Ok(event) => {
+                        Ok(DebouncedEvent::Write(_path)) => {
                             if let Ok(pr_table) = io::load_state() {
                                 let html = collect_html(&pr_table, &wr_tables, &targets_table);
 
@@ -135,6 +135,7 @@ fn main() {
                                 });
                             }
                         }
+                        Ok(_event) => (),
                         Err(e) => println!("Error while watching state.dat: {:?}", e),
                     }
                 }
@@ -146,17 +147,18 @@ fn main() {
     );
 }
 
-/*                let (tx, rx) = std::sync::mpsc::channel();
-                loop {
-                    if let Ok(pr_table) = io::load_state() {
-                        let html = collect_html(&pr_table, &wr_tables, &targets_table);
+/*
+loop {
+    if let Ok(pr_table) = io::load_state() {
+        let html = collect_html(&pr_table, &wr_tables, &targets_table);
 
-                        webview.dispatch(move |webview, _userdata| {
-                            update_html(webview, &html);
-                        });
-                    }
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                }*/
+        webview.dispatch(move |webview, _userdata| {
+            update_html(webview, &html);
+        });
+    }
+    std::thread::sleep(std::time::Duration::from_secs(5));
+}
+*/
 
 fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: &str) {
     webview.eval(&format!(
