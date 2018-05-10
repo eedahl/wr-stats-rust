@@ -2,6 +2,10 @@
 extern crate elma;
 extern crate notify;
 extern crate web_view;
+extern crate serde;
+
+#[macro_use]
+extern crate serde_derive;
 
 use elma::Time;
 use web_view::WebView;
@@ -12,28 +16,48 @@ use std::time::Duration;
 mod html;
 mod io;
 
+/*
+mod elma {
+    pub struct Time {
+        pub time: i32,
+    }
+}
+*/
+#[derive(Deserialize)]
+#[serde(remote = "Time")]
+struct TimeDef(i32);
+
+#[derive(Deserialize)]
+pub struct Targets {
+    #[serde(with = "TimeDef")]
+    godlike: Time,
+    #[serde(with = "TimeDef")]
+    legendary: Time,
+    #[serde(with = "TimeDef")]
+    world_class: Time,
+    #[serde(with = "TimeDef")]
+    professional: Time,
+    #[serde(with = "TimeDef")]
+    good: Time,
+    #[serde(with = "TimeDef")]
+    ok: Time,
+    #[serde(with = "TimeDef")]
+    beginner: Time,
+}
+
 #[derive(Clone)]
 pub struct WR {
     table: i32,
     lev: i32,
-    time: elma::Time,
+    time: Time,
     kuski: String,
 }
 
-pub struct Targets {
-    godlike: elma::Time,
-    legendary: elma::Time,
-    world_class: elma::Time,
-    professional: elma::Time,
-    good: elma::Time,
-    ok: elma::Time,
-    beginner: elma::Time,
-}
 
 pub struct DataRow {
     lev_number: i32,
     lev_name: String,
-    pr: elma::Time,
+    pr: Time,
     wr_beat: Option<WR>,
     wr_not_beat: Option<WR>,
 }
@@ -50,7 +74,7 @@ fn main() {
     let targets_table = io::load_targets_table();
 
     let pr_table = io::load_state().expect("Could not load file: state.dat");
-    let html = collect_html(&pr_table, &wr_tables, &targets_table);
+    let html = build_html(&pr_table, &wr_tables, &targets_table);
 
     let size = (960, 925);
     let resizable = true;
@@ -75,7 +99,7 @@ fn main() {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
                             if let Ok(pr_table) = io::load_state() {
-                                let html = collect_html(&pr_table, &wr_tables, &targets_table);
+                                let html = build_html(&pr_table, &wr_tables, &targets_table);
 
                                 webview.dispatch(move |webview, _userdata| {
                                     update_html(webview, &html);
@@ -111,14 +135,14 @@ fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
     current_wrs
 }
 
-fn compute_tts(d: &[DataRow]) -> (elma::Time, elma::Time) {
-    d.iter().fold((Time(0), Time(0)), |acc, x| {
+fn compute_tts(drs: &[DataRow]) -> (elma::Time, elma::Time) {
+    drs.iter().fold((Time(0), Time(0)), |acc, dr| {
         (
-            acc.0 + x.pr,
-            acc.1 + if let Some(wr) = x.wr_not_beat.clone() {
+            acc.0 + dr.pr,
+            acc.1 + if let Some(wr) = dr.wr_not_beat.clone() {
                 wr.time
             } else {
-                x.pr
+                dr.pr
             },
         )
     })
@@ -131,7 +155,7 @@ fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
         .collect()
 }
 
-fn collect_html(pr_table: &[Time], wr_tables: &[WR], targets_table: &[Targets]) -> String {
+fn build_html(pr_table: &[Time], wr_tables: &[WR], targets_table: &[Targets]) -> String {
     let data = io::populate_table_data(&pr_table, &wr_tables);
     let last_wr_table = get_last_wr_table(&wr_tables);
     let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);

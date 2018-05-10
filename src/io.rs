@@ -1,10 +1,12 @@
 extern crate csv;
 extern crate elma;
+extern crate serde;
 
 use WR;
 use Targets;
 use DataRow;
 use elma::Time;
+//use csv::Reader;
 
 pub fn load_targets_table() -> Vec<Targets> {
     let mut r = csv::Reader::from_file("targets.csv").expect("Could not read file: targets.csv");
@@ -21,6 +23,8 @@ pub fn load_targets_table() -> Vec<Targets> {
             beginner: Time::from(&row[6]),
         })
         .collect()
+
+//    r.deserialize().map(|r| r.unwrap()).collect()
 }
 
 pub fn load_wr_tables() -> Vec<WR> {
