@@ -45,8 +45,6 @@ pub fn create_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
 pub fn create_html_table(data: &[DataRow], targets_table: &[Targets], current_wrs: &[Time]) -> String {
     let mut html_table_rows = String::new();
 
-    // currently, if you have beaten all logged wrs, time is displayed red
-    // current wrs, or the last registered wr, is not coloured red
     for (i, r) in data.iter().enumerate() {
         let mut row = String::new();
         row.push_str(&table_data_s(&format!(

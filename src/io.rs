@@ -7,59 +7,48 @@ use DataRow;
 use elma::Time;
 
 pub fn load_targets_table() -> Vec<Targets> {
-    let mut tst = Vec::new();
     let mut r = csv::Reader::from_file("targets.csv").expect("Could not read file: targets.csv");
-    for record in r.records() {
-        if let Ok(row) = record {
-            tst.push(Targets {
-                godlike: Time::from(&row[0]),
-                legendary: Time::from(&row[1]),
-                world_class: Time::from(&row[2]),
-                professional: Time::from(&row[3]),
-                good: Time::from(&row[4]),
-                ok: Time::from(&row[5]),
-                beginner: Time::from(&row[6]),
-            });
-        }
-    }
-    tst
+
+    r.records()
+        .map(|r| r.unwrap())
+        .map(|row| Targets {
+            godlike: Time::from(&row[0]),
+            legendary: Time::from(&row[1]),
+            world_class: Time::from(&row[2]),
+            professional: Time::from(&row[3]),
+            good: Time::from(&row[4]),
+            ok: Time::from(&row[5]),
+            beginner: Time::from(&row[6]),
+        })
+        .collect()
 }
 
 pub fn load_wr_tables() -> Vec<WR> {
-    let mut wrt = Vec::new();
-
     let mut r = csv::Reader::from_file("elma_wrs.csv").expect("Could not read file: elma_wrs.csv");
 
-    for row in r.records().map(|x| x.unwrap()) {
-        wrt.push(WR {
+    r.records()
+        .map(|r| r.unwrap())
+        .map(|row| WR {
             table: row[0].parse::<i32>().unwrap(),
             lev: row[1].parse::<i32>().unwrap(),
             time: Time::from(&row[3]),
             kuski: row[4].to_string(),
-        });
-    }
-    wrt
+        })
+        .collect()
 }
 
 pub fn load_state() -> Result<Vec<Time>, elma::ElmaError> {
-    let mut prt = Vec::new();
-
     let state = elma::state::State::load("state.dat")?;
 
-    for lev in state.times.iter().take(54) {
-        if let Some(t) = lev.single.first() {
-            prt.push(t.time);
-        } else {
-            prt.push(Time::from("10:00,00"))
-        }
-    }
-
-    Ok(prt)
+    Ok(state
+        .times
+        .iter()
+        .take(54)
+        .map(|x| x.single.first().map_or(Time::from("10:00,00"), |x| x.time))
+        .collect())
 }
 
 pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {
-    let mut data: Vec<DataRow> = Vec::new();
-
     let level_names = vec![
         "Warm Up",
         "Flat Track",
@@ -117,27 +106,30 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
         "Apple Harvest",
     ];
 
-    for (i, lev_name) in level_names.iter().enumerate() {
-        let t = pr_table[i];
-        let lev = i as i32 + 1;
-        let last_wr_beat = wr_tables
-            .iter()
-            .filter(|x| (x.lev == lev) && (t <= x.time))
-            .last();
-        let first_wr_not_beat = wr_tables
-            .iter()
-            .filter(|x| (x.lev == lev) && !(t <= x.time))
-            .nth(0);
+    level_names
+        .iter()
+        .enumerate()
+        .map(|(i, lev_name)| {
+            let pr = pr_table[i];
+            let lev = i as i32 + 1;
+            let last_wr_beat = wr_tables
+                .iter()
+                .filter(|wr| (wr.lev == lev) && (pr <= wr.time))
+                .last();
+            let first_wr_not_beat = wr_tables
+                .iter()
+                .filter(|wr| (wr.lev == lev) && !(pr <= wr.time))
+                .nth(0);
 
-        data.push(DataRow {
-            lev_number: lev,
-            lev_name: lev_name.to_string(),
-            pr: t,
-            wr_beat: last_wr_beat.cloned(),
-            wr_not_beat: first_wr_not_beat.cloned(),
-        });
-    }
-    data
+            DataRow {
+                lev_number: lev,
+                lev_name: lev_name.to_string(),
+                pr: pr,
+                wr_beat: last_wr_beat.cloned(),
+                wr_not_beat: first_wr_not_beat.cloned(),
+            }
+        })
+        .collect()
 }
 
 /*
