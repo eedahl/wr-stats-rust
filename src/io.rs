@@ -1,53 +1,10 @@
 extern crate csv;
 extern crate elma;
 
-use shared::{DataRow, Targets, WR };
 use elma::Time;
+use failure::Error;
+use shared::{DataRow, Targets, WR};
 use std::path::Path;
-
-pub fn load_targets_table() -> Vec<Targets> {
-    let path = Path::new("wr-stats_targets.csv");
-    let mut r = csv::Reader::from_path(path).expect(&format!("Could not read file: {:?}", path));
-
-    r.records()
-        .map(|r| r.unwrap())
-        .map(|row| Targets {
-            godlike: Time::from(&row[0]),
-            legendary: Time::from(&row[1]),
-            world_class: Time::from(&row[2]),
-            professional: Time::from(&row[3]),
-            good: Time::from(&row[4]),
-            ok: Time::from(&row[5]),
-            beginner: Time::from(&row[6]),
-        })
-        .collect()
-}
-
-pub fn load_wr_tables() -> Vec<WR> {
-    let path = Path::new("wr-stats_tables.csv");
-    let mut r = csv::Reader::from_path(path).expect(&format!("Could not read file: {:?}", path));
-
-    r.records()
-        .map(|r| r.unwrap())
-        .map(|row| WR {
-            table: row[0].parse::<i32>().unwrap(),
-            lev: row[1].parse::<i32>().unwrap(),
-            time: Time::from(&row[2]),
-            kuski: row[3].to_string(),
-        })
-        .collect()
-}
-
-pub fn load_state() -> Result<Vec<Time>, elma::ElmaError> {
-    let state = elma::state::State::load("state.dat")?;
-
-    Ok(state
-        .times
-        .iter()
-        .take(54)
-        .map(|x| x.single.first().map_or(Time::from("10:00,00"), |x| x.time))
-        .collect())
-}
 
 pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {
     let level_names = vec![
@@ -133,15 +90,57 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
         .collect()
 }
 
-/*
-pub fn read_stats() -> Vec<Time> {
+pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
+    let path = Path::new("wr-stats_targets.csv");
+    let mut r = csv::Reader::from_path(path)?;
+
+    Ok(r.records()
+        .map(|r| r.unwrap())
+        .map(|row| Targets {
+            godlike: Time::from(&row[0]),
+            legendary: Time::from(&row[1]),
+            world_class: Time::from(&row[2]),
+            professional: Time::from(&row[3]),
+            good: Time::from(&row[4]),
+            ok: Time::from(&row[5]),
+            beginner: Time::from(&row[6]),
+        })
+        .collect())
+}
+
+pub fn load_wr_tables() -> Result<Vec<WR>, Error> {
+    let path = Path::new("wr-stats_tables.csv");
+    let mut r = csv::Reader::from_path(path)?;
+
+    Ok(r.records()
+        .map(|r| r.unwrap())
+        .map(|row| WR {
+            table: row[0].parse::<i32>().unwrap(),
+            lev: row[1].parse::<i32>().unwrap(),
+            time: Time::from(&row[2]),
+            kuski: row[3].to_string(),
+        })
+        .collect())
+}
+
+pub fn load_state() -> Result<Vec<Time>, elma::ElmaError> {
+    let state = elma::state::State::load("state.dat")?;
+
+    Ok(state
+        .times
+        .iter()
+        .take(54)
+        .map(|x| x.single.first().map_or(Time::from("10:00,00"), |x| x.time))
+        .collect())
+}
+
+pub fn read_stats() -> Result<Vec<Time>, Error> {
+    let s = ::std::fs::read_to_string("stats.txt")?;
+
     let mut prt = Vec::new();
-
-    let mut c = ::std::fs::read_to_string("stats.txt").expect("Could not read file: stats.txt");
-
     let mut level_counter = 0;
     let mut level_found = false;
-    for line in c.lines() {
+    for line in s.lines() {
         let mut data: Vec<&str> = line.trim().split_whitespace().collect();
 
         if data.len() != 0 && level_found {
@@ -158,6 +157,5 @@ pub fn read_stats() -> Vec<Time> {
             break;
         }
     }
-    prt
+    Ok(prt)
 }
-*/

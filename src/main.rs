@@ -1,5 +1,6 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 extern crate elma;
+extern crate failure;
 extern crate notify;
 extern crate web_view;
 
@@ -9,13 +10,12 @@ mod io;
 mod shared;
 
 use elma::Time;
+use failure::Error;
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use shared::{DataRow, Targets, WR};
 use std::sync::mpsc::channel;
 use std::time::Duration;
 use web_view::WebView;
-use shared::{Targets, WR, DataRow};
-
-//use curl::easy::Easy;
 
 //TODO(edahl): table sorting -- js?
 //TODO(edahl): stats.txt fallback?
@@ -25,15 +25,43 @@ use shared::{Targets, WR, DataRow};
 //TODO(edahl): table order
 //I think it would be more intuitive to have it your time -> beated table -> table to beat next
 //TODO(edahl): would appreciate if writen how many wrs in table #001 tabel #050 100 150 200 250 300 350 400 osv
+//if you have times in 55 and 56, it should be counted for 50. and if i have times on 100, it be counted for table 1
+
+struct TableData {
+    data: Vec<DataRow>,
+    targets: Vec<Targets>,
+}
+
 fn main() {
-    http::download_wr_tables();
-    http::download_targets();
+    match http::download_wr_tables() {
+        Ok(()) => {}
+        Err(e) => println!("Error updating WR tables: {:?}", e),
+    }
+    match http::download_targets() {
+        Ok(()) => {}
+        Err(e) => println!("Error getting targets table: {:?}", e),
+    }
 
-    let wr_tables = io::load_wr_tables();
-    let targets_table = io::load_targets_table();
+    let wr_tables = match io::load_wr_tables() {
+        Ok(wrt) => wrt,
+        Err(e) => {
+            println!("Error loading WR tables.", );
+            Vec::new()
+        }
+    };
 
-    let pr_table = io::load_state().expect("Could not load file: state.dat");
-    let html = build_html(&pr_table, &wr_tables, &targets_table);
+    let targets_table = match io::load_targets_table() {
+        Ok(tt) => tt,
+        Err(e) => {
+            html::default_error_message(e);
+            Vec::new()
+        }
+    };
+
+    let html = match build_html(&wr_tables, &targets_table) {
+        Ok(h) => h,
+        Err(e) => html::default_error_message(e),
+    };
 
     let size = (960, 925);
     let resizable = true;
@@ -57,13 +85,14 @@ fn main() {
                 loop {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
-                            if let Ok(pr_table) = io::load_state() {
-                                let html = build_html(&pr_table, &wr_tables, &targets_table);
+                            let html = match build_html(&wr_tables, &targets_table) {
+                                Ok(h) => h,
+                                Err(e) => html::default_error_message(e),
+                            };
 
-                                webview.dispatch(move |webview, _userdata| {
-                                    update_html(webview, &html);
-                                });
-                            }
+                            webview.dispatch(move |webview, _userdata| {
+                                update_html(webview, &html);
+                            });
                         }
                         Ok(_event) => (),
                         Err(e) => println!("Error while watching state.dat: {:?}", e),
@@ -113,11 +142,15 @@ fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
         .collect()
 }
 
-fn build_html(pr_table: &[Time], wr_tables: &[WR], targets_table: &[Targets]) -> String {
+fn build_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
+    let pr_table = match io::load_state() {
+        Ok(t) => t,
+        Err(_) => io::read_stats()?,
+    };
     let data = io::populate_table_data(&pr_table, &wr_tables);
     let last_wr_table = get_last_wr_table(&wr_tables);
     let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
     let html_table = html::create_html_table(&data, &targets_table, &current_wrs);
     let (p_tt, t_tt) = compute_tts(&data);
-    html::create_html(&html_table, &p_tt, &t_tt)
+    Ok(html::format_html(&html_table, &p_tt, &t_tt))
 }

@@ -5,12 +5,14 @@ authors = ["Eivind E. Dahl <eivind.dahl@gmail.com>"]
 build = "build.rs"
 
 [dependencies]
+failure = "*"
+failure_derive = "*"
 csv = "1.0.0-beta.5"
 regex = "*"
 elma = "*"
 web-view = "*"
 notify = "*"
-curl = "*"
+reqwest = "*"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = { git = "https://github.com/mxre/winres" }

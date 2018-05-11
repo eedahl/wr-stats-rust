@@ -11,8 +11,7 @@ pub struct Targets {
     pub beginner: Time,
 }
 
-
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct WR {
     pub table: i32,
     pub lev: i32,
@@ -27,3 +26,17 @@ pub struct DataRow {
     pub wr_beat: Option<WR>,
     pub wr_not_beat: Option<WR>,
 }
+
+/*
+#[derive(Debug, Fail)]
+enum RuntimeError {
+    #[fail(display = "invalid toolchain name: {}", name)]
+    R {
+        name: String,
+    },
+    #[fail(display = "unknown toolchain version: {}", version)]
+    UnknownToolchainVersion {
+        version: String,
+    }
+}
+*/
