@@ -1,5 +1,5 @@
-use Targets;
-use DataRow;
+use shared::Targets;
+use shared::DataRow;
 use elma::Time;
 
 pub fn create_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {

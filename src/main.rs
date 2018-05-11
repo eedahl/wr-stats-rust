@@ -2,65 +2,20 @@
 extern crate elma;
 extern crate notify;
 extern crate web_view;
-extern crate serde;
 
-#[macro_use]
-extern crate serde_derive;
+mod html;
+mod http;
+mod io;
+mod shared;
 
 use elma::Time;
-use web_view::WebView;
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
 use std::time::Duration;
+use web_view::WebView;
+use shared::{Targets, WR, DataRow};
 
-mod html;
-mod io;
-
-/*
-mod elma {
-    pub struct Time {
-        pub time: i32,
-    }
-}
-*/
-#[derive(Deserialize)]
-#[serde(remote = "Time")]
-struct TimeDef(i32);
-
-#[derive(Deserialize)]
-pub struct Targets {
-    #[serde(with = "TimeDef")]
-    godlike: Time,
-    #[serde(with = "TimeDef")]
-    legendary: Time,
-    #[serde(with = "TimeDef")]
-    world_class: Time,
-    #[serde(with = "TimeDef")]
-    professional: Time,
-    #[serde(with = "TimeDef")]
-    good: Time,
-    #[serde(with = "TimeDef")]
-    ok: Time,
-    #[serde(with = "TimeDef")]
-    beginner: Time,
-}
-
-#[derive(Clone)]
-pub struct WR {
-    table: i32,
-    lev: i32,
-    time: Time,
-    kuski: String,
-}
-
-
-pub struct DataRow {
-    lev_number: i32,
-    lev_name: String,
-    pr: Time,
-    wr_beat: Option<WR>,
-    wr_not_beat: Option<WR>,
-}
+//use curl::easy::Easy;
 
 //TODO(edahl): table sorting -- js?
 //TODO(edahl): stats.txt fallback?
@@ -69,7 +24,11 @@ pub struct DataRow {
 //TODO(edahl): read lev names from a file
 //TODO(edahl): table order
 //I think it would be more intuitive to have it your time -> beated table -> table to beat next
+//TODO(edahl): would appreciate if writen how many wrs in table #001 tabel #050 100 150 200 250 300 350 400 osv
 fn main() {
+    http::download_wr_tables();
+    http::download_targets();
+
     let wr_tables = io::load_wr_tables();
     let targets_table = io::load_targets_table();
 
@@ -123,7 +82,6 @@ fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: &str) {
         web_view::escape(html)
     ));
 }
-
 
 fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
     let last_table = wr_tables.iter().last().unwrap().table;

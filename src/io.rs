@@ -1,15 +1,13 @@
 extern crate csv;
 extern crate elma;
-extern crate serde;
 
-use WR;
-use Targets;
-use DataRow;
+use shared::{DataRow, Targets, WR };
 use elma::Time;
-//use csv::Reader;
+use std::path::Path;
 
 pub fn load_targets_table() -> Vec<Targets> {
-    let mut r = csv::Reader::from_file("targets.csv").expect("Could not read file: targets.csv");
+    let path = Path::new("wr-stats_targets.csv");
+    let mut r = csv::Reader::from_path(path).expect(&format!("Could not read file: {:?}", path));
 
     r.records()
         .map(|r| r.unwrap())
@@ -23,20 +21,19 @@ pub fn load_targets_table() -> Vec<Targets> {
             beginner: Time::from(&row[6]),
         })
         .collect()
-
-//    r.deserialize().map(|r| r.unwrap()).collect()
 }
 
 pub fn load_wr_tables() -> Vec<WR> {
-    let mut r = csv::Reader::from_file("elma_wrs.csv").expect("Could not read file: elma_wrs.csv");
+    let path = Path::new("wr-stats_tables.csv");
+    let mut r = csv::Reader::from_path(path).expect(&format!("Could not read file: {:?}", path));
 
     r.records()
         .map(|r| r.unwrap())
         .map(|row| WR {
             table: row[0].parse::<i32>().unwrap(),
             lev: row[1].parse::<i32>().unwrap(),
-            time: Time::from(&row[3]),
-            kuski: row[4].to_string(),
+            time: Time::from(&row[2]),
+            kuski: row[3].to_string(),
         })
         .collect()
 }
@@ -140,10 +137,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
 pub fn read_stats() -> Vec<Time> {
     let mut prt = Vec::new();
 
-    let mut f = ::std::fs::File::open("stats.txt").expect("Could not open file: stats.txt");
-    let mut c = String::new();
-    f.read_to_string(&mut c)
-        .expect("Could not read file: stats.txt");
+    let mut c = ::std::fs::read_to_string("stats.txt").expect("Could not read file: stats.txt");
 
     let mut level_counter = 0;
     let mut level_found = false;
