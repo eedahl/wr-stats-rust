@@ -1252,7 +1252,7 @@ dependencies = [
 
 [[package]]
 name = "wr-stats"
-version = "0.4.0-alpha"
+version = "0.4.1-alpha"
 dependencies = [
  "csv 1.0.0-beta.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "elma 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",

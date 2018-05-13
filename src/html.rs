@@ -48,10 +48,10 @@ pub fn format_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
                 </body>
             </html>
             "#,
-        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.css")),
+        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
         styles = inline_style(include_str!("styles.css")),
-        bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.js")),
-        jquery = inline_script(include_str!("jquery-3.3.1.js")),
+        bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.min.js")),
+        jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
         scripts = inline_script(include_str!("wr-stats.js")),
         table_rows = html_table,
         p_tt = p_tt,
@@ -217,7 +217,20 @@ fn inline_tr(h: &str) -> String {
 }
 
 fn table_num(h: &str) -> String {
-    format!("(<em>{}</em>)", h)
+    format!("(<strong><em>{}</em></strong>)", h)
+}
+
+fn times_to_diff(t1: &Time, t2: &Time) -> String {
+    use html::pad::{Alignment, PadStr};
+    format!(
+        r#"<span class="diff">{}</span>"#,
+        format!(
+            r#"(<strong><em>+{}</em></strong>)"#,
+            (*t1 - *t2)
+            .to_string()
+            .trim_left_matches(|x| (x == '0') | (x == ':'))
+        )//.pad_to_width_with_alignment(30, Alignment::Right),
+    )
 }
 
 fn inline_style(s: &str) -> String {
@@ -226,29 +239,6 @@ fn inline_style(s: &str) -> String {
 
 fn inline_script(s: &str) -> String {
     format!(r#"<script>{}</script>"#, s)
-}
-
-fn times_to_diff(t1: &Time, t2: &Time) -> String {
-    use html::pad::{Alignment, PadStr};
-    format!(
-        r#"<span class="diff">{}</span>"#,
-        format!(
-            r#"<em>(+{})</em></span>"#,
-            (*t1 - *t2)
-            .to_string()
-            .replace("00:", "")
-            .replace("00,", "0,")//HACK
-            .replace("01,", "1,")//TODO(edahl): unhack
-            .replace("02,", "2,")
-            .replace("03,", "3,")
-            .replace("04,", "4,")
-            .replace("05,", "5,")
-            .replace("06,", "6,")
-            .replace("07,", "7,")
-            .replace("08,", "8,")
-            .replace("09,", "9,")
-        )//.pad_to_width_with_alignment(30, Alignment::Right),
-    )
 }
 
 fn time_to_wr_tagged_td(t: &Time) -> String {

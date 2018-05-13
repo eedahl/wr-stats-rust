@@ -19,6 +19,7 @@ pub struct WR {
     pub kuski: String,
 }
 
+#[derive(Debug)]
 pub struct DataRow {
     pub lev_number: i32,
     pub lev_name: String,
@@ -28,15 +29,18 @@ pub struct DataRow {
 }
 
 /*
-#[derive(Debug, Fail)]
-enum RuntimeError {
-    #[fail(display = "invalid toolchain name: {}", name)]
-    R {
-        name: String,
-    },
-    #[fail(display = "unknown toolchain version: {}", version)]
-    UnknownToolchainVersion {
-        version: String,
-    }
+pub fn time_to_short_string(t: &Time) -> String {
+    (h, m, s, hd) = t.to_parts();
+
+10:00:00,00
+
+    format!(
+        "{sign}{hr}{m}{s:02}{hd:02}",
+        sign = if t.0 < 0 { "-" } else { "" },
+        hr = if h > 0 { format!("{}:", h) } else { "".into() },
+        m = if m > 0 { format!("{}:", m) } else { "".into() },
+        s = if s > 0 { format!("{},", s) } else { "".into() },
+        hd = hd
+    )
 }
 */
