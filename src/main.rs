@@ -1,4 +1,4 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 extern crate elma;
 extern crate failure;
 extern crate notify;
@@ -33,22 +33,17 @@ struct TableData {
 }
 
 fn main() {
-    match http::download_wr_tables() {
-        Ok(()) => {}
-        Err(e) => println!("Error updating WR tables: {:?}", e),
-    }
-    match http::download_targets() {
-        Ok(()) => {}
-        Err(e) => println!("Error getting targets table: {:?}", e),
-    }
+    http::download_wr_tables().unwrap_or_else(|e| {
+        println!("Error updating WR tables: {:?}", e);
+    });
+    http::download_targets().unwrap_or_else(|e| {
+        println!("Error getting targets table: {:?}", e);
+    });
 
-    let wr_tables = match io::load_wr_tables() {
-        Ok(wrt) => wrt,
-        Err(e) => {
-            println!("Error loading WR tables.", );
-            Vec::new()
-        }
-    };
+    let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
+        println!("Error loading WR tables: {:?}", e);
+        Vec::new()
+    });
 
     let targets_table = match io::load_targets_table() {
         Ok(tt) => tt,
@@ -63,7 +58,7 @@ fn main() {
         Err(e) => html::default_error_message(e),
     };
 
-    let size = (960, 925);
+    let size = (960, 1020);
     let resizable = true;
     let debug = true;
     let userdata = ();

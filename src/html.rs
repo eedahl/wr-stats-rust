@@ -1,5 +1,6 @@
-use failure::Error;
+extern crate pad;
 use elma::Time;
+use failure::Error;
 use shared::DataRow;
 use shared::Targets;
 
@@ -7,36 +8,51 @@ pub fn format_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
     format!(
         r#"
             <!doctype html>
-            <html>
+            <html lang="en">
                 <head>
                     <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
                     <link rel="icon" src="http://ldev.no/wr-stats/wr-stats.png">
+                    {bootstrap}
                     {styles}
                 </head>
                 <body>
-                    <table>
-                        <tr>
-                            <th id="lev">Level</th>
-                            <th id="pr">PR</th>
-                            <th id="target_wr">Target WR</th>
-                            <th id="diff">Difference</th>
-                            <th id="k_to_beat">Kuski to beat</th>
-                            <th id="wr_beat">WR beat</th>
-                            <th id="k_beat">Kuski beat</th>
-                        </tr>
-                        {table_rows}
-                    </table>
-                    <table id="tt_table">
-                        <tr>
-                            <td id="p_tt" class="tt">Personal total time: {p_tt}</td>
-                            <td id="t_tt" class="tt">Target total time: {t_tt}</td>
-                            <td id="diff" class="tt">Difference: {diff}</td>
-                        </tr>
-                    </table>
+                    <div class="container-fluid">
+                        <table id="wr_table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col" id="lev">Level</th>
+                                    <th scope="col" id="pr">PR</th>
+                                    <th scope="col" id="wr_beat">WR beat</th>
+                                    <th scope="col" id="k_beat">Kuski beat</th>
+                                    <th scope="col" id="target_wr">Target WR <em>(Diff)</em></th>
+                                    <th scope="col" id="k_to_beat">Kuski to beat</th>
+                                    <th scope="col" id="target">Next target</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {table_rows}
+                            </tbody>
+                        </table>
+                        <table id="tt_table" class="table">
+                            <tr>
+                                <td id="p_tt" class="tt">Personal total time: {p_tt}</td>
+                                <td id="t_tt" class="tt">Target total time: {t_tt}</td>
+                                <td id="diff" class="tt">Difference: {diff}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {jquery}
+                    {bootstrap_js}
+                    {scripts}
                 </body>
             </html>
             "#,
+        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.css")),
         styles = inline_style(include_str!("styles.css")),
+        bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.js")),
+        jquery = inline_script(include_str!("jquery-3.3.1.js")),
+        scripts = inline_script(include_str!("wr-stats.js")),
         table_rows = html_table,
         p_tt = p_tt,
         t_tt = t_tt,
@@ -48,10 +64,12 @@ pub fn default_error_message(e: Error) -> String {
     format!(
         r#"
             <!doctype html>
-            <html>
+            <html lang="en">
                 <head>
                     <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
                     <link rel="icon" src="http://ldev.no/wr-stats/wr-stats.png">
+                    {bootstrap}
                     {styles}
                 </head>
                 <body>
@@ -65,6 +83,7 @@ pub fn default_error_message(e: Error) -> String {
                 </body>
             </html>
             "#,
+        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.css")),
         styles = inline_style(include_str!("styles.css")),
         error = e
     )
@@ -85,29 +104,11 @@ pub fn create_html_table(
             &r.lev_name
         )));
 
-        if let Some(ref wr) = r.wr_not_beat {
-            row.push_str(&time_to_tagged_td(
-                &r.pr,
-                &targets_table[i],
-                &current_wrs[i],
-            ));
-            row.push_str(&time_to_tagged_td(
-                &wr.time,
-                &targets_table[i],
-                &current_wrs[i],
-            ));
-            row.push_str(&time_to_diff(&(r.pr - wr.time)));
-            row.push_str(&table_data_s(&format!(
-                "{} {}",
-                wr.kuski,
-                table_num(&wr.table.to_string())
-            )));
-        } else {
-            row.push_str(&time_to_wr_tagged_td(&r.pr));
-            row.push_str(&table_data_s(&"-".to_string()));
-            row.push_str(&table_data_s(&"-".to_string()));
-            row.push_str(&table_data_s(&"-".to_string()));
-        }
+        row.push_str(&time_to_tagged_td(
+            &r.pr,
+            &targets_table[i],
+            &current_wrs[i],
+        ));
 
         if let Some(ref wr) = r.wr_beat {
             row.push_str(&time_to_tagged_td(
@@ -121,18 +122,66 @@ pub fn create_html_table(
                 table_num(&wr.table.to_string())
             )));
         } else {
-            row.push_str(&table_data_s(&"-".to_string()));
-            row.push_str(&table_data_s(&"-".to_string()));
+            row.push_str(&table_data_s("-"));
+            row.push_str(&table_data_s("-"));
         }
+
+        if let Some(ref wr) = r.wr_not_beat {
+            row.push_str(&time_to_tagged_td_with_diff(
+                &wr.time,
+                &targets_table[i],
+                &current_wrs[i],
+                &r.pr,
+            ));
+            row.push_str(&table_data_s(&format!(
+                "{} {}",
+                wr.kuski,
+                table_num(&wr.table.to_string())
+            )));
+        } else {
+            row.push_str(&table_data_s("-"));
+            row.push_str(&table_data_s("-"));
+        }
+
+        row.push_str(&time_to_tagged_target_td_with_diff(
+            &r.pr,
+            &targets_table[i],
+            &current_wrs[i],
+        ));
 
         html_table_rows.push_str(&inline_tr(&row));
     }
-
     html_table_rows
 }
 
+fn time_to_tagged_target_td_with_diff(t: &Time, tar: &Targets, cur_wr: &Time) -> String {
+    let target = &get_next_target(&t, &tar, &cur_wr);
+    let class = &get_time_class(&target, &tar, &cur_wr);
+    format!(
+        "<td class=\"{}\">{} {}</td>",
+        class,
+        target.to_string(),
+        times_to_diff(t, target)
+    )
+}
+
+fn time_to_tagged_td_with_diff(t: &Time, tar: &Targets, cur_wr: &Time, t_cmp: &Time) -> String {
+    let class = get_time_class(t, tar, cur_wr);
+    format!(
+        "<td class=\"{}\">{} {}</td>",
+        class,
+        t.to_string(),
+        times_to_diff(t_cmp, t)
+    )
+}
+
 fn time_to_tagged_td(t: &Time, tar: &Targets, cur_wr: &Time) -> String {
-    let class = match *t {
+    let class = get_time_class(t, tar, cur_wr);
+    format!("<td class=\"{}\">{}</td>", class, t.to_string())
+}
+
+fn get_time_class(t: &Time, tar: &Targets, cur_wr: &Time) -> String {
+    match *t {
         t if t > tar.beginner => "unclassified",
         t if t > tar.ok => "beginner",
         t if t > tar.good => "ok",
@@ -142,8 +191,21 @@ fn time_to_tagged_td(t: &Time, tar: &Targets, cur_wr: &Time) -> String {
         t if t > tar.godlike => "legendary",
         t if t > *cur_wr => "godlike",
         _ => "wr",
-    };
-    format!("<td class=\"{}\">{}</td>", class, t.to_string())
+    }.to_string()
+}
+
+fn get_next_target(t: &Time, tar: &Targets, cur_wr: &Time) -> Time {
+    match *t {
+        t if t > tar.beginner => tar.beginner,
+        t if t > tar.ok => tar.ok,
+        t if t > tar.good => tar.good,
+        t if t > tar.professional => tar.professional,
+        t if t > tar.world_class => tar.world_class,
+        t if t > tar.legendary => tar.legendary,
+        t if t > tar.godlike => tar.godlike,
+        t if t > *cur_wr => *cur_wr,
+        _ => *cur_wr,
+    }
 }
 
 fn table_data_s(s: &str) -> String {
@@ -155,15 +217,38 @@ fn inline_tr(h: &str) -> String {
 }
 
 fn table_num(h: &str) -> String {
-    format!("(<i>{}</i>)", h)
+    format!("(<em>{}</em>)", h)
 }
 
 fn inline_style(s: &str) -> String {
-    format!(r#"<style type="text/css">{}</style>"#, s)
+    format!(r#"<style rel="stylesheet" type="text/css">{}</style>"#, s)
 }
 
-fn time_to_diff(t: &Time) -> String {
-    format!("<td>+{}</td>", t.to_string())
+fn inline_script(s: &str) -> String {
+    format!(r#"<script>{}</script>"#, s)
+}
+
+fn times_to_diff(t1: &Time, t2: &Time) -> String {
+    use html::pad::{Alignment, PadStr};
+    format!(
+        r#"<span class="diff">{}</span>"#,
+        format!(
+            r#"<em>(+{})</em></span>"#,
+            (*t1 - *t2)
+            .to_string()
+            .replace("00:", "")
+            .replace("00,", "0,")//HACK
+            .replace("01,", "1,")//TODO(edahl): unhack
+            .replace("02,", "2,")
+            .replace("03,", "3,")
+            .replace("04,", "4,")
+            .replace("05,", "5,")
+            .replace("06,", "6,")
+            .replace("07,", "7,")
+            .replace("08,", "8,")
+            .replace("09,", "9,")
+        )//.pad_to_width_with_alignment(30, Alignment::Right),
+    )
 }
 
 fn time_to_wr_tagged_td(t: &Time) -> String {

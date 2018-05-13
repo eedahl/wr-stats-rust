@@ -93,9 +93,9 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
 pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
     let path = Path::new("wr-stats_targets.csv");
     let mut r = csv::Reader::from_path(path)?;
-
+    
     Ok(r.records()
-        .map(|r| r.unwrap())
+        .map(|r| r.unwrap_or(csv::StringRecord::from(vec!["00:00:00"; 7])))
         .map(|row| Targets {
             godlike: Time::from(&row[0]),
             legendary: Time::from(&row[1]),
@@ -111,7 +111,7 @@ pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
 pub fn load_wr_tables() -> Result<Vec<WR>, Error> {
     let path = Path::new("wr-stats_tables.csv");
     let mut r = csv::Reader::from_path(path)?;
-
+    
     Ok(r.records()
         .map(|r| r.unwrap())
         .map(|row| WR {
