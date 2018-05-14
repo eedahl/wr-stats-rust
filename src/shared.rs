@@ -69,8 +69,32 @@ pub fn build_tables(
         .collect::<Vec<((DataRow, Targets), Time)>>();
 
     match sort_by {
-        SortBy::TableA => {}
-        SortBy::TableD => {}
+        SortBy::TableA => collate.sort_by(|x, y| {
+            let table1 = if let Some(ref wr) = ((x.0).0).wr_beat {
+                wr.table
+            } else {
+                0
+            };
+            let table2 = if let Some(ref wr) = ((y.0).0).wr_beat {
+                wr.table
+            } else {
+                0
+            };
+            table1.cmp(&table2)
+        }),
+        SortBy::TableD => collate.sort_by(|x, y| {
+            let table1 = if let Some(ref wr) = ((x.0).0).wr_beat {
+                wr.table
+            } else {
+                0
+            };
+            let table2 = if let Some(ref wr) = ((y.0).0).wr_beat {
+                wr.table
+            } else {
+                0
+            };
+            table2.cmp(&table1)
+        }),
         SortBy::DiffToNextTargetA => collate.sort_by(|x, y| {
             let pr1 = ((x.0).0).pr;
             let tars1 = &(x.0).1;
