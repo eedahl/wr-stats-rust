@@ -1,3 +1,3 @@
 $(function() {
-    //$('#wr_table').slideUp(10000);
+    //$('#wr_table').slideUp(1000);
 });

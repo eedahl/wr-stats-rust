@@ -1,10 +1,10 @@
-extern crate pad;
 use elma::Time;
 use failure::Error;
 use shared::DataRow;
 use shared::Targets;
+use shared::get_next_target;
 
-pub fn format_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
+pub fn format_html(tables: &str) -> String {
     format!(
         r#"
             <!doctype html>
@@ -12,36 +12,15 @@ pub fn format_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                    <link rel="icon" src="http://ldev.no/wr-stats/wr-stats.png">
+                    <!--<link rel="icon" src="http://ldev.no/wr-stats/wr-stats.png">-->
                     {bootstrap}
                     {styles}
                 </head>
                 <body>
-                    <div class="container-fluid">
-                        <table id="wr_table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
-                            <thead>
-                                <tr>
-                                    <th scope="col" id="lev">Level</th>
-                                    <th scope="col" id="pr">PR</th>
-                                    <th scope="col" id="wr_beat">WR beat</th>
-                                    <th scope="col" id="k_beat">Kuski beat</th>
-                                    <th scope="col" id="target_wr">Target WR <em>(Diff)</em></th>
-                                    <th scope="col" id="k_to_beat">Kuski to beat</th>
-                                    <th scope="col" id="target">Next target</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {table_rows}
-                            </tbody>
-                        </table>
-                        <table id="tt_table" class="table">
-                            <tr>
-                                <td id="p_tt" class="tt">Personal total time: {p_tt}</td>
-                                <td id="t_tt" class="tt">Target total time: {t_tt}</td>
-                                <td id="diff" class="tt">Difference: {diff}</td>
-                            </tr>
-                        </table>
+                    <div class="container-fluid" id="tables_container">
+                        {tables}
                     </div>
+                    <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
                     {jquery}
                     {bootstrap_js}
                     {scripts}
@@ -53,11 +32,35 @@ pub fn format_html(html_table: &str, p_tt: &Time, t_tt: &Time) -> String {
         bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.min.js")),
         jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
         scripts = inline_script(include_str!("wr-stats.js")),
-        table_rows = html_table,
-        p_tt = p_tt,
-        t_tt = t_tt,
-        diff = &(*p_tt - *t_tt)
+        tables = tables,
     )
+}
+
+pub fn format_tables(table_rows: &str, p_tt: &Time, wr_tt: &Time) -> String {
+    format!(r#"
+<table id="wr_table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+    <thead>
+        <tr>
+            <th scope="col" id="lev">Level</th>
+            <th scope="col" id="pr">PR</th>
+            <th scope="col" id="wr_beat">WR beat</th>
+            <th scope="col" id="k_beat">Kuski beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target_wr">Target WR (<strong><em>diff</em></strong>)</th>
+            <th scope="col" id="k_to_beat">Kuski to beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target">Next target</th>
+        </tr>
+    </thead>
+    <tbody>
+        {table_rows}
+    </tbody>
+    </table>
+    <table id="tt_table" class="table">
+    <tr>
+        <td id="p_tt" class="tt">Personal total time: {p_tt}</td>
+        <td id="wr_tt" class="tt">Target WRs total time: {wr_tt}</td>
+        <td id="diff" class="tt">Difference: {diff}</td>
+    </tr>
+</table>"#, table_rows = table_rows, p_tt = p_tt, wr_tt = wr_tt, diff = &(*p_tt - *wr_tt))
 }
 
 pub fn default_error_message(e: Error) -> String {
@@ -89,7 +92,7 @@ pub fn default_error_message(e: Error) -> String {
     )
 }
 
-pub fn create_html_table(
+pub fn create_wr_table(
     data: &[DataRow],
     targets_table: &[Targets],
     current_wrs: &[Time],
@@ -161,7 +164,7 @@ fn time_to_tagged_target_td_with_diff(t: &Time, tar: &Targets, cur_wr: &Time) ->
         "<td class=\"{}\">{} {}</td>",
         class,
         target.to_string(),
-        times_to_diff(t, target)
+        times_to_diff(t, &target)
     )
 }
 
@@ -194,20 +197,6 @@ fn get_time_class(t: &Time, tar: &Targets, cur_wr: &Time) -> String {
     }.to_string()
 }
 
-fn get_next_target(t: &Time, tar: &Targets, cur_wr: &Time) -> Time {
-    match *t {
-        t if t > tar.beginner => tar.beginner,
-        t if t > tar.ok => tar.ok,
-        t if t > tar.good => tar.good,
-        t if t > tar.professional => tar.professional,
-        t if t > tar.world_class => tar.world_class,
-        t if t > tar.legendary => tar.legendary,
-        t if t > tar.godlike => tar.godlike,
-        t if t > *cur_wr => *cur_wr,
-        _ => *cur_wr,
-    }
-}
-
 fn table_data_s(s: &str) -> String {
     format!("<td>{}</td>", s)
 }
@@ -221,15 +210,14 @@ fn table_num(h: &str) -> String {
 }
 
 fn times_to_diff(t1: &Time, t2: &Time) -> String {
-    use html::pad::{Alignment, PadStr};
     format!(
         r#"<span class="diff">{}</span>"#,
         format!(
             r#"(<strong><em>+{}</em></strong>)"#,
             (*t1 - *t2)
-            .to_string()
-            .trim_left_matches(|x| (x == '0') | (x == ':'))
-        )//.pad_to_width_with_alignment(30, Alignment::Right),
+                .to_string()
+                .trim_left_matches(|x| (x == '0') | (x == ':'))
+        )
     )
 }
 
@@ -239,8 +227,4 @@ fn inline_style(s: &str) -> String {
 
 fn inline_script(s: &str) -> String {
     format!(r#"<script>{}</script>"#, s)
-}
-
-fn time_to_wr_tagged_td(t: &Time) -> String {
-    format!("<td class=\"wr\">{}</td>", t.to_string())
 }

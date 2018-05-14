@@ -9,28 +9,24 @@ mod http;
 mod io;
 mod shared;
 
-use elma::Time;
-use failure::Error;
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
-use shared::{DataRow, Targets, WR};
+use shared::SortBy;
 use std::sync::mpsc::channel;
 use std::time::Duration;
 use web_view::WebView;
 
 //TODO(edahl): table sorting -- js?
-//TODO(edahl): stats.txt fallback?
 //TODO(edahl): functionality to browse WR tables
 //TODO(edahl): browse targets
 //TODO(edahl): read lev names from a file
-//TODO(edahl): table order
-//I think it would be more intuitive to have it your time -> beated table -> table to beat next
 //TODO(edahl): would appreciate if writen how many wrs in table #001 tabel #050 100 150 200 250 300 350 400 osv
 //if you have times in 55 and 56, it should be counted for 50. and if i have times on 100, it be counted for table 1
-
+/*
 struct TableData {
     data: Vec<DataRow>,
     targets: Vec<Targets>,
 }
+*/
 
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
@@ -53,7 +49,7 @@ fn main() {
         }
     };
 
-    let html = match build_html(&wr_tables, &targets_table) {
+    let html = match shared::build_html(&wr_tables, &targets_table) {
         Ok(h) => h,
         Err(e) => html::default_error_message(e),
     };
@@ -80,13 +76,13 @@ fn main() {
                 loop {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
-                            let html = match build_html(&wr_tables, &targets_table) {
+                            let tables = match shared::build_tables(&wr_tables, &targets_table, SortBy::DiffToNextWRA) {
                                 Ok(h) => h,
                                 Err(e) => html::default_error_message(e),
                             };
 
                             webview.dispatch(move |webview, _userdata| {
-                                update_html(webview, &html);
+                                update_tables(webview, &tables);
                             });
                         }
                         Ok(_event) => (),
@@ -98,54 +94,24 @@ fn main() {
         |_webview: &mut _, _arg: &_, _userdata: &mut _| {},
         userdata,
     );
+
+    /*|webview, arg, tasks: &mut Vec<Task>| {
+		use Cmd::*;
+		match serde_json::from_str(arg).unwrap() {
+			init => (),
+			log { text } => println!("{}", text),
+			addTask { name } => tasks.push(Task { name, done: false }),
+			markTask { index, done } => tasks[index].done = done,
+			clearDoneTasks => tasks.retain(|t| !t.done),
+		}
+		render(webview, tasks);
+	}*/
 }
 
-fn update_html<'a, T>(webview: &mut WebView<'a, T>, html: &str) {
+fn update_tables<'a, T>(webview: &mut WebView<'a, T>, tables: &str) {
     webview.eval(&format!(
-        "document.documentElement.innerHTML={};",
-        web_view::escape(html)
+        "$('#tables_container').html({});",
+        web_view::escape(tables)
     ));
 }
 
-fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
-    let last_table = wr_tables.iter().last().unwrap().table;
-    let current_wrs: Vec<WR> = wr_tables
-        .iter()
-        .filter(|x| x.table == last_table)
-        .cloned()
-        .collect();
-    current_wrs
-}
-
-fn compute_tts(drs: &[DataRow]) -> (elma::Time, elma::Time) {
-    drs.iter().fold((Time(0), Time(0)), |acc, dr| {
-        (
-            acc.0 + dr.pr,
-            acc.1 + if let Some(wr) = dr.wr_not_beat.clone() {
-                wr.time
-            } else {
-                dr.pr
-            },
-        )
-    })
-}
-
-fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
-    prs.iter()
-        .zip(cur_wrt.iter())
-        .map(|(x, y)| *x.min(&y.time))
-        .collect()
-}
-
-fn build_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
-    let pr_table = match io::load_state() {
-        Ok(t) => t,
-        Err(_) => io::read_stats()?,
-    };
-    let data = io::populate_table_data(&pr_table, &wr_tables);
-    let last_wr_table = get_last_wr_table(&wr_tables);
-    let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
-    let html_table = html::create_html_table(&data, &targets_table, &current_wrs);
-    let (p_tt, t_tt) = compute_tts(&data);
-    Ok(html::format_html(&html_table, &p_tt, &t_tt))
-}
