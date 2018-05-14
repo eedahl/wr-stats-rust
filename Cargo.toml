@@ -1,6 +1,6 @@
 [package]
 name = "wr-stats"
-version = "0.4.1-alpha"
+version = "0.5.1-alpha"
 authors = ["Eivind E. Dahl <eivind.dahl@gmail.com>"]
 build = "build.rs"
 
@@ -13,6 +13,10 @@ elma = "*"
 web-view = "*"
 notify = "*"
 reqwest = "*"
+serde_derive = "*"
+serde_json = "*"
+serde = "*"
+crossbeam = "*"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = { git = "https://github.com/mxre/winres" }

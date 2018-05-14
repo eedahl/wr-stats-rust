@@ -1,8 +1,8 @@
 use elma::Time;
 use failure::Error;
+use shared::get_next_target;
 use shared::DataRow;
 use shared::Targets;
-use shared::get_next_target;
 
 pub fn format_html(tables: &str) -> String {
     format!(
@@ -35,19 +35,19 @@ pub fn format_html(tables: &str) -> String {
         tables = tables,
     )
 }
-
+//table-responsive
 pub fn format_tables(table_rows: &str, p_tt: &Time, wr_tt: &Time) -> String {
-    format!(r#"
+    format!(r##"
 <table id="wr_table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
     <thead>
         <tr>
-            <th scope="col" id="lev">Level</th>
-            <th scope="col" id="pr">PR</th>
+            <th scope="col" id="lev" onclick="sortUpdateBy('LevelNum')">Level</th>
+            <th scope="col" id="pr" onclick="sortUpdateBy('DiffToNextWR')">PR</th>
             <th scope="col" id="wr_beat">WR beat</th>
-            <th scope="col" id="k_beat">Kuski beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target_wr">Target WR (<strong><em>diff</em></strong>)</th>
-            <th scope="col" id="k_to_beat">Kuski to beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target">Next target</th>
+            <th scope="col" id="kuski_beat" onclick="sortUpdateBy('Table')">Kuski beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target_wr" onclick="sortUpdateBy('DiffToNextWR')">Target WR (<strong><em>diff</em></strong>)</th>
+            <th scope="col" id="kuski_to_beat" onclick="sortUpdateBy('Table')">Kuski to beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target" onclick="sortUpdateBy('DiffToNextTarget')">Next target</th>
         </tr>
     </thead>
     <tbody>
@@ -60,7 +60,7 @@ pub fn format_tables(table_rows: &str, p_tt: &Time, wr_tt: &Time) -> String {
         <td id="wr_tt" class="tt">Target WRs total time: {wr_tt}</td>
         <td id="diff" class="tt">Difference: {diff}</td>
     </tr>
-</table>"#, table_rows = table_rows, p_tt = p_tt, wr_tt = wr_tt, diff = &(*p_tt - *wr_tt))
+</table>"##, table_rows = table_rows, p_tt = p_tt, wr_tt = wr_tt, diff = &(*p_tt - *wr_tt))
 }
 
 pub fn default_error_message(e: Error) -> String {

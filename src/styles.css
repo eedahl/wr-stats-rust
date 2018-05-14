@@ -22,6 +22,9 @@ html, body {
 	align-content: right;
 }
 
+tr button {
+	display: block;
+}
 
 #tt_table tr {
 	text-align: center;

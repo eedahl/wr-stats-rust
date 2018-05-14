@@ -32,18 +32,49 @@ pub struct DataRow {
 }
 
 pub enum SortBy {
-    DiffToNextWRA,
-    DiffToNextTargetA,
-    LevelNumA,
-    DiffToNextWRD,
-    DiffToNextTargetD,
-    LevelNumD,
-    TableA,
-    TableD,
+    DiffToNextWR(SortOrder),
+    DiffToNextTarget(SortOrder),
+    LevelNum(SortOrder),
+    Table(SortOrder),
+}
+
+pub enum SortOrder {
+    Ascending,
+    Descending,
+}
+
+pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
+    match sort_param {
+        "DiffToNextWR" => SortBy::DiffToNextWR(if ascending {
+            SortOrder::Ascending
+        } else {
+            SortOrder::Descending
+        }),
+        "DiffToNextTarget" => SortBy::DiffToNextTarget(if ascending {
+            SortOrder::Ascending
+        } else {
+            SortOrder::Descending
+        }),
+        "LevelNum" => SortBy::LevelNum(if ascending {
+            SortOrder::Ascending
+        } else {
+            SortOrder::Descending
+        }),
+        "Table" => SortBy::Table(if ascending {
+            SortOrder::Ascending
+        } else {
+            SortOrder::Descending
+        }),
+        &_ => SortBy::LevelNum(SortOrder::Ascending)
+    }
 }
 
 pub fn build_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
-    let tables = build_tables(wr_tables, targets_table, SortBy::LevelNumA)?;
+    let tables = build_tables(
+        wr_tables,
+        targets_table,
+        SortBy::LevelNum(SortOrder::Ascending),
+    )?;
     Ok(html::format_html(&tables))
 }
 
@@ -69,7 +100,7 @@ pub fn build_tables(
         .collect::<Vec<((DataRow, Targets), Time)>>();
 
     match sort_by {
-        SortBy::TableA => collate.sort_by(|x, y| {
+        SortBy::Table(ord) => collate.sort_by(|x, y| {
             let table1 = if let Some(ref wr) = ((x.0).0).wr_beat {
                 wr.table
             } else {
@@ -80,22 +111,12 @@ pub fn build_tables(
             } else {
                 0
             };
-            table1.cmp(&table2)
+            match ord {
+                SortOrder::Ascending => table1.cmp(&table2),
+                SortOrder::Descending => table2.cmp(&table1),
+            }
         }),
-        SortBy::TableD => collate.sort_by(|x, y| {
-            let table1 = if let Some(ref wr) = ((x.0).0).wr_beat {
-                wr.table
-            } else {
-                0
-            };
-            let table2 = if let Some(ref wr) = ((y.0).0).wr_beat {
-                wr.table
-            } else {
-                0
-            };
-            table2.cmp(&table1)
-        }),
-        SortBy::DiffToNextTargetA => collate.sort_by(|x, y| {
+        SortBy::DiffToNextTarget(ord) => collate.sort_by(|x, y| {
             let pr1 = ((x.0).0).pr;
             let tars1 = &(x.0).1;
             let cur_wr1 = x.1;
@@ -104,20 +125,12 @@ pub fn build_tables(
             let tars2 = &(y.0).1;
             let cur_wr2 = y.1;
             let tar2 = get_next_target(&pr2, tars2, &cur_wr2);
-            (pr1 - tar1).cmp(&(pr2 - tar2))
+            match ord {
+                SortOrder::Ascending => (pr1 - tar1).cmp(&(pr2 - tar2)),
+                SortOrder::Descending => (pr2 - tar2).cmp(&(pr1 - tar1)),
+            }
         }),
-        SortBy::DiffToNextTargetD => collate.sort_by(|x, y| {
-            let pr1 = ((x.0).0).pr;
-            let tars1 = &(x.0).1;
-            let cur_wr1 = x.1;
-            let tar1 = get_next_target(&pr1, tars1, &cur_wr1);
-            let pr2 = ((y.0).0).pr;
-            let tars2 = &(y.0).1;
-            let cur_wr2 = y.1;
-            let tar2 = get_next_target(&pr2, tars2, &cur_wr2);
-            (pr2 - tar2).cmp(&(pr1 - tar1))
-        }),
-        SortBy::DiffToNextWRA => collate.sort_by(|x, y| {
+        SortBy::DiffToNextWR(ord) => collate.sort_by(|x, y| {
             let pr1 = ((x.0).0).pr;
             let wr1 = if let Some(ref wr) = ((x.0).0).wr_not_beat {
                 wr.time
@@ -130,29 +143,19 @@ pub fn build_tables(
             } else {
                 pr2
             };
-            (pr1 - wr1).cmp(&(pr2 - wr2))
+            match ord {
+                SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
+                SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
+            }
         }),
-        SortBy::DiffToNextWRD => collate.sort_by(|x, y| {
-            let pr1 = ((x.0).0).pr;
-            let wr1 = if let Some(ref wr) = ((x.0).0).wr_not_beat {
-                wr.time
-            } else {
-                pr1
-            };
-            let pr2 = ((y.0).0).pr;
-            let wr2 = if let Some(ref wr) = ((y.0).0).wr_not_beat {
-                wr.time
-            } else {
-                pr2
-            };
-            (pr2 - wr2).cmp(&(pr1 - wr1))
-        }),
-        SortBy::LevelNumD => collate.sort_by(|x, y| {
-            let lev_num1 = ((x.0).0).lev_number;
-            let lev_num2 = ((y.0).0).lev_number;
-            lev_num2.cmp(&lev_num1)
-        }),
-        SortBy::LevelNumA => { /* Default */ }
+        SortBy::LevelNum(ord) => match ord {
+            SortOrder::Ascending => {}
+            SortOrder::Descending => collate.sort_by(|x, y| {
+                let lev_num1 = ((x.0).0).lev_number;
+                let lev_num2 = ((y.0).0).lev_number;
+                lev_num2.cmp(&lev_num1)
+            }),
+        },
     }
     let (unpack, wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) = collate.into_iter().unzip();
     let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
