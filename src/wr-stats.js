@@ -1,7 +1,39 @@
+'use strict';
+
 var ascending = true;
 var param = "LevelNum"
 
 $(function () {
+    $('#lev').click(function () { sortUpdateBy('LevelNum') });
+    $('#pr').click(function () { sortUpdateBy('PR') });
+    $('#wr_beat').click(function () { sortUpdateBy('DiffToPrevWR') });
+    $('#kuski_beat').click(function () { sortUpdateBy('Table') });
+    $('#target_wr').click(function () { sortUpdateBy('DiffToNextWR') });
+    $('#kuski_to_beat').click(function () { sortUpdateBy('Table') });
+    $('#target').click(function () { sortUpdateBy('DiffToNextTarget') });
+
+    var trace1 = {
+        x: [1, 2, 3, 4],
+        y: [10, 15, 13, 17],
+        type: 'scatter'
+      };
+      
+      var trace2 = {
+        x: [1, 2, 3, 4],
+        y: [16, 5, 11, 9],
+        type: 'scatter'
+      };
+      
+      var data = [trace1, trace2];
+      /*
+        <!-- Plots go in blank <div> elements. 
+    You can size them in the plot layout,
+    or give the div a size as shown here.
+        -->
+    <div id="tester" style="width:90%;height:250px;"></div>
+    */
+      
+      //Plotly.newPlot('wr-table', data);
 });
 
 function sortUpdateBy(par) {
@@ -15,8 +47,12 @@ function sortUpdate() {
     rpc.sort(param, ascending);
 }
 
-function updateTables(tables) {
-    $('#tables_container').html(tables);
+function updateTable(rows) {
+    $('#wr-table-rows').html(rows);
+}
+
+function updateSidebar(sidebar) {
+    $('#sidebar').html(sidebar);
 }
 
 var rpc = {
@@ -25,7 +61,6 @@ var rpc = {
 }
 
 /*
-'use strict';
 
 function UI(items) {
     var h = picodom.h;

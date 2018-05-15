@@ -32,6 +32,8 @@ pub struct DataRow {
 }
 
 pub enum SortBy {
+    PR(SortOrder),
+    DiffToPrevWR(SortOrder),
     DiffToNextWR(SortOrder),
     DiffToNextTarget(SortOrder),
     LevelNum(SortOrder),
@@ -45,6 +47,16 @@ pub enum SortOrder {
 
 pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     match sort_param {
+        "PR" => SortBy::PR(if ascending {
+            SortOrder::Ascending
+        } else {
+            SortOrder::Descending
+        }),
+        "DiffToPrevWR" => SortBy::DiffToPrevWR(if ascending {
+            SortOrder::Ascending
+        } else {
+            SortOrder::Descending
+        }),
         "DiffToNextWR" => SortBy::DiffToNextWR(if ascending {
             SortOrder::Ascending
         } else {
@@ -65,35 +77,38 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
         } else {
             SortOrder::Descending
         }),
-        &_ => SortBy::LevelNum(SortOrder::Ascending)
+        &_ => SortBy::LevelNum(SortOrder::Ascending),
     }
 }
 
-pub fn build_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
-    let tables = build_tables(
+pub fn build_initial_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
+    let (table_rows, sidebar) = build_update_data(
         wr_tables,
         targets_table,
         SortBy::LevelNum(SortOrder::Ascending),
     )?;
-    Ok(html::format_html(&tables))
+    Ok(html::format_html(&table_rows, &sidebar))
 }
 
-pub fn build_tables(
+pub fn build_update_data(
     wr_tables: &[WR],
     targets_table: &[Targets],
     sort_by: SortBy,
-) -> Result<String, Error> {
+) -> Result<(String, String), Error> {
     let pr_table = match io::load_state() {
         Ok(t) => t,
         Err(_) => io::read_stats()?,
     };
 
+    let data = io::populate_table_data(&pr_table, &wr_tables);
+
+    // * Sidebar
+    let (p_tt, t_tt) = compute_tts(&data);
+    let sidebar = html::format_sidebar(&p_tt, &t_tt);
+
+    // * Table
     let last_wr_table = get_last_wr_table(&wr_tables);
     let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
-
-    let data = io::populate_table_data(&pr_table, &wr_tables);
-    let (p_tt, t_tt) = compute_tts(&data);
-
     let mut collate = data.into_iter()
         .zip(targets_table.into_iter().cloned())
         .zip(current_wrs.into_iter())
@@ -116,6 +131,14 @@ pub fn build_tables(
                 SortOrder::Descending => table2.cmp(&table1),
             }
         }),
+        SortBy::PR(ord) => collate.sort_by(|x, y| {
+            let pr1 = ((x.0).0).pr;
+            let pr2 = ((y.0).0).pr;
+            match ord {
+                SortOrder::Ascending => pr1.cmp(&pr2),
+                SortOrder::Descending => pr2.cmp(&pr1),
+            }
+        }),
         SortBy::DiffToNextTarget(ord) => collate.sort_by(|x, y| {
             let pr1 = ((x.0).0).pr;
             let tars1 = &(x.0).1;
@@ -128,6 +151,24 @@ pub fn build_tables(
             match ord {
                 SortOrder::Ascending => (pr1 - tar1).cmp(&(pr2 - tar2)),
                 SortOrder::Descending => (pr2 - tar2).cmp(&(pr1 - tar1)),
+            }
+        }),
+        SortBy::DiffToPrevWR(ord) => collate.sort_by(|x, y| {
+            let pr1 = ((x.0).0).pr;
+            let wr1 = if let Some(ref wr) = ((x.0).0).wr_beat {
+                wr.time
+            } else {
+                pr1
+            };
+            let pr2 = ((y.0).0).pr;
+            let wr2 = if let Some(ref wr) = ((y.0).0).wr_beat {
+                wr.time
+            } else {
+                pr2
+            };
+            match ord {
+                SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
+                SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
             }
         }),
         SortBy::DiffToNextWR(ord) => collate.sort_by(|x, y| {
@@ -160,11 +201,9 @@ pub fn build_tables(
     let (unpack, wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) = collate.into_iter().unzip();
     let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
 
-    Ok(html::format_tables(
-        &html::create_wr_table(&data_sorted, &targets_sorted, &wrs_sorted),
-        &p_tt,
-        &t_tt,
-    ))
+    let table_rows = html::create_table_rows(&data_sorted, &targets_sorted, &wrs_sorted);
+
+    Ok((table_rows, sidebar))
 }
 
 pub fn get_next_target(t: &Time, tar: &Targets, cur_wr: &Time) -> Time {
@@ -194,14 +233,14 @@ fn compute_tts(drs: &[DataRow]) -> (Time, Time) {
     })
 }
 
-fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
+pub fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
     prs.iter()
         .zip(cur_wrt.iter())
         .map(|(x, y)| *x.min(&y.time))
         .collect()
 }
 
-fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
+pub fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
     let last_table = wr_tables.iter().last().unwrap().table;
     let current_wrs: Vec<WR> = wr_tables
         .iter()
@@ -210,20 +249,3 @@ fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
         .collect();
     current_wrs
 }
-
-/*
-pub fn time_to_short_string(t: &Time) -> String {
-    (h, m, s, hd) = t.to_parts();
-
-10:00:00,00
-
-    format!(
-        "{sign}{hr}{m}{s:02}{hd:02}",
-        sign = if t.0 < 0 { "-" } else { "" },
-        hr = if h > 0 { format!("{}:", h) } else { "".into() },
-        m = if m > 0 { format!("{}:", m) } else { "".into() },
-        s = if s > 0 { format!("{},", s) } else { "".into() },
-        hd = hd
-    )
-}
-*/

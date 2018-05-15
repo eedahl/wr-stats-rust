@@ -1,6 +1,7 @@
 html, body {
 	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 	font-size: 11px;
+	color: #b8b8b8;
 	background-color: #404040;
 }
 
@@ -26,7 +27,7 @@ html, body {
 }
 
 .diff {
-	color: #b8b8b8;
+	color: #b9b9b9;
 	align-content: right;
 }
 

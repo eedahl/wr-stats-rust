@@ -4,64 +4,113 @@ use shared::get_next_target;
 use shared::DataRow;
 use shared::Targets;
 
-pub fn format_html(tables: &str) -> String {
+// * col-sm-9
+pub fn format_html(tables: &str, sidebar: &str) -> String {
     format!(
         r#"
-            <!doctype html>
-            <html lang="en">
-                <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                    <!--<link rel="icon" src="http://ldev.no/wr-stats/wr-stats.png">-->
-                    {bootstrap}
-                    {styles}
-                </head>
-                <body>
-                    <div class="container-fluid" id="tables_container">
-                        {tables}
-                    </div>
-                    <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
-                    {jquery}
-                    {bootstrap_js}
-                    {scripts}
-                </body>
-            </html>
-            "#,
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {bootstrap}
+        {styles}
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row content">
+                <!--<div class="col-sm-2" id="sidebar">
+                    
+                    <div class="col-sm-2" >
+                    <div class="row-sm-4" id="plot"></div>
+                </div>-->
+                <div class="col-sm-12" id="table-container">
+                    <table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col" id="lev" class="sort">Level</th>
+                                <th scope="col" id="pr" class="sort">PR</th>
+                                <th scope="col" id="wr_beat" class="sort"">WR beat</th>
+                                <th scope="col" id="kuski_beat" class="sort">Kuski beat (<strong><em>table</em></strong>)</th>
+                                <th scope="col" id="target_wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
+                                <th scope="col" id="kuski_to_beat" class="sort">Kuski to beat (<strong><em>table</em></strong>)</th>
+                                <th scope="col" id="target" class="sort">Next target</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wr-table-rows">
+                            {table_rows}
+                        </tbody>
+                        <tfooter id="sidebar">{sidebar}</tfooter> 
+                    </table>
+                </div>
+            </div>
+        </div>
+        {jquery}
+        {bootstrap_js}
+        {plotly}
+        {scripts}
+    </body>
+</html>
+            "#,// ! sidebar footer temporary
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
         styles = inline_style(include_str!("styles.css")),
         bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.min.js")),
         jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
+        plotly = inline_script(include_str!("plotly-latest.min.js")),
         scripts = inline_script(include_str!("wr-stats.js")),
-        tables = tables,
+        table_rows = tables,
+        sidebar = sidebar
     )
 }
-//table-responsive
-pub fn format_tables(table_rows: &str, p_tt: &Time, wr_tt: &Time) -> String {
-    format!(r##"
-<table id="wr_table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
-    <thead>
-        <tr>
-            <th scope="col" id="lev" class="sort" onclick="sortUpdateBy('LevelNum')">Level</th>
-            <th scope="col" id="pr" class="sort" onclick="sortUpdateBy('DiffToNextWR')">PR</th>
-            <th scope="col" id="wr_beat">WR beat</th>
-            <th scope="col" id="kuski_beat" class="sort" onclick="sortUpdateBy('Table')">Kuski beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target_wr" class="sort" onclick="sortUpdateBy('DiffToNextWR')">Target WR (<strong><em>diff</em></strong>)</th>
-            <th scope="col" id="kuski_to_beat" class="sort" onclick="sortUpdateBy('Table')">Kuski to beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target" class="sort" onclick="sortUpdateBy('DiffToNextTarget')">Next target</th>
-        </tr>
-    </thead>
-    <tbody>
-        {table_rows}
-    </tbody>
-    </table>
-    <table id="tt_table" class="table">
-    <tr>
-        <td id="p_tt" class="tt">Personal total time: {p_tt}</td>
-        <td id="wr_tt" class="tt">Target WRs total time: {wr_tt}</td>
-        <td id="diff" class="tt">Difference: {diff}</td>
-    </tr>
-</table>"##, table_rows = table_rows, p_tt = p_tt, wr_tt = wr_tt, diff = &(*p_tt - *wr_tt))
+
+pub fn format_sidebar(p_tt: &Time, wr_tt: &Time) -> String {
+    format!(
+        r#"
+<tr>
+    <td></td>
+    <td id="p_tt" class="tt">{p_tt}</td>
+    <td></td>
+    <td id="wr_tt" class="tt">{wr_tt}</td>
+    <td id="diff" class="tt">PTT-TWRTT: {diff}</td>
+    <td></td>
+    <td></td>
+</tr>"#,
+        p_tt = p_tt,
+        wr_tt = wr_tt,
+        diff = &(*p_tt - *wr_tt)
+    )
 }
+
+/*
+<div id="tt-table">
+    <p id="p_tt" class="tt">Personal total time: {p_tt}</p>
+    <p id="wr_tt" class="tt">Target WRs total time: {wr_tt}</p>
+    <p id="diff" class="tt">Difference: {diff}</p>
+</div>
+
+<ul id="tts" class="ul">
+    <li id="p_tt" class="tt">Personal total time (TT): {p_tt}</li>
+    <li id="wr_tt" class="tt">Target WRs TT: {wr_tt}</li>
+    <li id="diff" class="tt">Difference: {diff}</li>
+    <li class="tt">TT of current WRs</li>
+    <li class="tt">TT if times at least beginner</li>
+    <li class="tt">TT if times at least ok</li>
+    <li class="tt">TT if times at least good</li>
+    <li class="tt">TT if times at least professional</li>
+    <li class="tt">TT if times at least world class</li>
+    <li class="tt">TT if times at least legendary</li>
+    <li class="tt">TT if times at least godlike</li>
+    <li class="tt">Number of times after table 1</li>
+    <li class="tt">Number of times after table 50</li>
+    <li class="tt">Number of times after table 100</li>
+    <li class="tt">Number of times after table 150</li>
+    <li class="tt">Number of times after table 200</li>
+    <li class="tt">Number of times after table 250</li>
+    <li class="tt">Number of times after table 300</li>
+    <li class="tt">Number of times after table 350</li>
+    <li class="tt">Number of times after table 400</li>
+</ul>
+*/
 
 pub fn default_error_message(e: Error) -> String {
     format!(
@@ -71,7 +120,6 @@ pub fn default_error_message(e: Error) -> String {
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                    <link rel="icon" src="http://ldev.no/wr-stats/wr-stats.png">
                     {bootstrap}
                     {styles}
                 </head>
@@ -92,7 +140,7 @@ pub fn default_error_message(e: Error) -> String {
     )
 }
 
-pub fn create_wr_table(
+pub fn create_table_rows(
     data: &[DataRow],
     targets_table: &[Targets],
     current_wrs: &[Time],
@@ -114,10 +162,11 @@ pub fn create_wr_table(
         ));
 
         if let Some(ref wr) = r.wr_beat {
-            row.push_str(&time_to_tagged_td(
+            row.push_str(&time_to_tagged_td_with_diff(
                 &wr.time,
                 &targets_table[i],
                 &current_wrs[i],
+                &r.pr,
             ));
             row.push_str(&table_data_s(&format!(
                 "{} {}",
@@ -211,14 +260,36 @@ fn table_num(h: &str) -> String {
 
 fn times_to_diff(t1: &Time, t2: &Time) -> String {
     format!(
-        r#"<span class="diff">{}</span>"#,
-        format!(
-            r#"(<strong><em>+{}</em></strong>)"#,
-            (*t1 - *t2)
-                .to_string()
-                .trim_left_matches(|x| (x == '0') | (x == ':'))
-        )
+        r#"<span class="diff">(<strong><em>{}</em></strong>)</span>"#,
+        time_to_diff_string(&(*t1 - *t2))
     )
+}
+
+fn time_to_diff_string(t: &Time) -> String {
+    //let pos_t: Time = if t.0 < 0 { Time(-t.0) } else { *t };
+
+    let (negative, h, m, s, hd) = t.to_parts();
+    let sign = if negative { "-" } else { "+" };
+
+    match (h, m, s, hd) {
+        (0, 0, 0, hd) => format!("{sign}0,{hd:02}", sign = sign, hd = hd),
+        (0, 0, s, hd) => format!("{sign}{s},{hd:02}", sign = sign, s = s, hd = hd),
+        (0, m, s, hd) => format!(
+            "{sign}{m}:{s:02},{hd:02}",
+            sign = sign,
+            m = m,
+            s = s,
+            hd = hd
+        ),
+        (h, m, s, hd) => format!(
+            "{sign}{h}:{m:02}:{s:02},{hd:02}",
+            sign = sign,
+            h = h,
+            m = m,
+            s = s,
+            hd = hd
+        ),
+    }
 }
 
 fn inline_style(s: &str) -> String {
