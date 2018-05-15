@@ -5,7 +5,6 @@ extern crate notify;
 extern crate web_view;
 #[macro_use]
 extern crate serde_derive;
-extern crate crossbeam;
 extern crate serde;
 extern crate serde_json;
 
@@ -67,61 +66,57 @@ fn main() {
         Err(e) => html::default_error_message(e),
     };
 
-    let wr_tables_ref = &wr_tables;
-    let targets_table_ref = &targets_table;
+    //let wr_tables_ref = &wr_tables;
+    //let targets_table_ref = &targets_table;
 
     let size = (960, 1020);
     let resizable = true;
     let debug = true;
     let userdata = ();
 
-    crossbeam::scope(|scope| {
-        web_view::run(
-            "WR Stats",
-            web_view::Content::Html(html),
-            Some(size),
-            resizable,
-            debug,
-            |webview| {
-                scope.spawn(move || {
-                    let (tx, rx) = channel();
-                    let mut watcher: RecommendedWatcher =
-                        Watcher::new(tx, Duration::from_secs(1)).unwrap();
-                    watcher
-                        .watch("state.dat", RecursiveMode::NonRecursive)
-                        .unwrap();
-                    loop {
-                        match rx.recv() {
-                            Ok(DebouncedEvent::Write(_path)) => {
-                                webview.dispatch(move |webview, _userdata| {
-                                    webview.eval(&format!("sortUpdate();"));
-                                });
-                            }
-                            Ok(_event) => (),
-                            Err(e) => println!("Error while watching state.dat: {:?}", e),
+    web_view::run(
+        "WR Stats",
+        web_view::Content::Html(html),
+        Some(size),
+        resizable,
+        debug,
+        |webview| {
+            std::thread::spawn(move || {
+                let (tx, rx) = channel();
+                let mut watcher: RecommendedWatcher =
+                    Watcher::new(tx, Duration::from_secs(1)).unwrap();
+                watcher
+                    .watch("state.dat", RecursiveMode::NonRecursive)
+                    .unwrap();
+                loop {
+                    match rx.recv() {
+                        Ok(DebouncedEvent::Write(_path)) => {
+                            webview.dispatch(move |webview, _userdata| {
+                                webview.eval(&format!("sortUpdate();"));
+                            });
                         }
-                    }
-                });
-            },
-            |webview, arg, _userdata: &mut _| {
-                use Cmd::*;
-                match serde_json::from_str(arg).unwrap() {
-                    sort { param, ascending } => {
-                        println!("param: {:?}, ascending: {:?}", &param, ascending);
-                        let sort_hint = shared::get_sort_hint(&param, ascending);
-                        let tables =
-                            match shared::build_tables(wr_tables_ref, targets_table_ref, sort_hint)
-                            {
-                                Ok(h) => h,
-                                Err(e) => html::default_error_message(e),
-                            };
-                        update_tables(webview, &tables);
+                        Ok(_event) => (),
+                        Err(e) => println!("Error while watching state.dat: {:?}", e),
                     }
                 }
-            },
-            userdata,
-        );
-    });
+            });
+        },
+        move |webview, arg, _userdata: &mut _| {
+            use Cmd::*;
+            match serde_json::from_str(arg).unwrap() {
+                sort { param, ascending } => {
+                    println!("param: {:?}, ascending: {:?}", &param, ascending);
+                    let sort_hint = shared::get_sort_hint(&param, ascending);
+                    let tables = match shared::build_tables(&wr_tables, &targets_table, sort_hint) {
+                        Ok(h) => h,
+                        Err(e) => html::default_error_message(e),
+                    };
+                    update_tables(webview, &tables);
+                }
+            }
+        },
+        userdata,
+    );
 }
 
 fn update_tables<'a, T>(webview: &mut WebView<'a, T>, tables: &str) {
