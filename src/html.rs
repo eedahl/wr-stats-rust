@@ -41,13 +41,13 @@ pub fn format_tables(table_rows: &str, p_tt: &Time, wr_tt: &Time) -> String {
 <table id="wr_table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
     <thead>
         <tr>
-            <th scope="col" id="lev" onclick="sortUpdateBy('LevelNum')">Level</th>
-            <th scope="col" id="pr" onclick="sortUpdateBy('DiffToNextWR')">PR</th>
+            <th scope="col" id="lev" class="sort" onclick="sortUpdateBy('LevelNum')">Level</th>
+            <th scope="col" id="pr" class="sort" onclick="sortUpdateBy('DiffToNextWR')">PR</th>
             <th scope="col" id="wr_beat">WR beat</th>
-            <th scope="col" id="kuski_beat" onclick="sortUpdateBy('Table')">Kuski beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target_wr" onclick="sortUpdateBy('DiffToNextWR')">Target WR (<strong><em>diff</em></strong>)</th>
-            <th scope="col" id="kuski_to_beat" onclick="sortUpdateBy('Table')">Kuski to beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target" onclick="sortUpdateBy('DiffToNextTarget')">Next target</th>
+            <th scope="col" id="kuski_beat" class="sort" onclick="sortUpdateBy('Table')">Kuski beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target_wr" class="sort" onclick="sortUpdateBy('DiffToNextWR')">Target WR (<strong><em>diff</em></strong>)</th>
+            <th scope="col" id="kuski_to_beat" class="sort" onclick="sortUpdateBy('Table')">Kuski to beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target" class="sort" onclick="sortUpdateBy('DiffToNextTarget')">Next target</th>
         </tr>
     </thead>
     <tbody>

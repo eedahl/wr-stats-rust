@@ -8,6 +8,14 @@ html, body {
 	padding: 0px;
 }
 
+.sort {
+	cursor: pointer;
+}
+
+.sort:hover {
+	background-color: #303340;
+}
+
 .table {
 	color: #b8b8b8;
 }
