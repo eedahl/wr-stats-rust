@@ -51,7 +51,7 @@ pub fn format_html(table_rows: &str, table_footer: &str) -> String {
             </div>
         </div>
         <script charset="utf-8">{d3_script}</script>
-        <script charset=>{c3_script}</script>
+        {c3_script}
         {script}
     </body>
 </html>
@@ -65,7 +65,7 @@ pub fn format_html(table_rows: &str, table_footer: &str) -> String {
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
         c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
         d3_script = include_str!("d3/d3.min.js"),
-        c3_script = include_str!("c3-0.6.0/c3.min.js"),
+        c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
         styles = inline_style(include_str!("styles.css")),
         script = inline_script(include_str!("wr-stats.js")),
         table_rows = table_rows,
