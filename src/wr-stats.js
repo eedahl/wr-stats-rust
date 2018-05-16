@@ -4,8 +4,6 @@ var ascending = true;
 var param = "LevelNum"
 
 window.onload = function () {
-
-
     document.getElementById('lev')
         .addEventListener("click", function () {
             updateSortedBy('LevelNum')
@@ -34,17 +32,18 @@ window.onload = function () {
         .addEventListener("click", function () {
             updateSortedBy('DiffToNextTarget')
         });
-
+    /*
+        c3.generate({
+            bindto: '#chart',
+            data: {
+                columns: [
+                    ['data1', 30, 200, 100, 400, 150, 250],
+                    ['data2', 50, 20, 10, 40, 15, 25]
+                ]
+            }
+        });
+    */
 };
-
-/*
-plotly,
-//d3,
-highcharts,
-smoothiecharts,
-charts.js
-*/
-
 
 function updateSortedBy(par) {
     param = par;

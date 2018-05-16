@@ -20,12 +20,14 @@ pub fn format_html(table_rows: &str, table_footer: &str) -> String {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         {bootstrap}
+        {c3_styles}
         {styles}
     </head>
     <body>
         <div class="container-fluid">
             <div class="row content">
                 <div class="col-sm-12" id="table-container">
+                    <div id="chart"></div>
                     <table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
                         <thead>
                             <tr>
@@ -48,7 +50,9 @@ pub fn format_html(table_rows: &str, table_footer: &str) -> String {
                 </div>
             </div>
         </div>
-        {scripts}
+        <script charset="utf-8">{d3_script}</script>
+        <script charset=>{c3_script}</script>
+        {script}
     </body>
 </html>
             "#,
@@ -59,8 +63,11 @@ pub fn format_html(table_rows: &str, table_footer: &str) -> String {
         // ? {jquery}
         // ? jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
+        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
+        d3_script = include_str!("d3/d3.min.js"),
+        c3_script = include_str!("c3-0.6.0/c3.min.js"),
         styles = inline_style(include_str!("styles.css")),
-        scripts = inline_script(include_str!("wr-stats.js")),
+        script = inline_script(include_str!("wr-stats.js")),
         table_rows = table_rows,
         table_footer = table_footer
     )

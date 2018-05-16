@@ -19,14 +19,6 @@ use std::thread::spawn;
 use std::time::Duration;
 use web_view::WebView;
 
-#[allow(non_camel_case_types)]
-#[derive(Deserialize)]
-#[serde(tag = "cmd")]
-enum Cmd {
-    updateSorted { param: String, ascending: bool },
-    // * Admissible commands go here
-}
-
 //TODO(edahl): refactor sorting rust-side
 //TODO(edahl): colour tts
 //TODO(edahl): multiple pages, like say you want to see the development in a lev over all wr tables
@@ -122,6 +114,14 @@ fn main() {
         },
         userdata,
     );
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Deserialize)]
+#[serde(tag = "cmd")]
+enum Cmd {
+    updateSorted { param: String, ascending: bool },
+    // * Admissible commands go here
 }
 
 fn update_table_rows<'a, T>(webview: &mut WebView<'a, T>, rows: &str) {
