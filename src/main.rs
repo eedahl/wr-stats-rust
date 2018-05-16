@@ -22,37 +22,29 @@ use web_view::WebView;
 #[allow(non_camel_case_types)]
 #[derive(Deserialize)]
 #[serde(tag = "cmd")]
-pub enum Cmd {
-    sort { param: String, ascending: bool },
+enum Cmd {
+    updateSorted { param: String, ascending: bool },
     // * Admissible commands go here
 }
 
 //TODO(edahl): refactor sorting rust-side
 //TODO(edahl): colour tts
-//TODO(edahl): a better data structure
-//TODO(edahl): multiple pages, like say you want to see the development over all wr tables
-//TODO(edahl): functionality to browse WR tables
-//TODO(edahl): browse targets
-//TODO(edahl): a side pane that can possibly be collapsable, should be simple JS, with:
-//TODO --- how many wrs in table #001 tabel #050 100 150 200 250 300 350 400 osv
-//TODO if you have times in 55 and 56, it should be counted for 50. and if i have times on 100, it be counted for table 1
-//TODO --- your tt if all your times were at least beginner, ok, good, pro, etc.
-//TODO --- always show the closest targets (independently of ordering), maybe at the bottom of the list,
-//TODO something like "Your closest targets are: 18. Spiral (+,01), 3. Twin Peaks (+,01)" etc
-//TODO also can show worst differences to see where need to improve a lot
-//TODO --- like the improvements tab on elmastats, you can click on a level and it takes you there
-//TODO nice thing would be to have one app that can do everything, meaning add target times in yours as well
-//TODO ---- it's already a lot of into in one screen, so maybe some selects like show only target times,
-//TODO show only target wrs or whatever, or very simple starting view with just your times
-//TODO and then click on a level to see all the info for that level
-//TODO --- letting you left click a level to see a graph, kinda like the improvements tab in elma stats,
-//TODO that show the development from table 1 to whichever is the last one
-//TODO together with info like targets, etc., that you would expect for that one level
-//TODO and a horizontal line showing your current time
-//TODO --- but kinda what i'm getting is that the  left pane would be mostly extra clutter
-//TODO an alternative would be a header with "Overview" and "Additional stats" that lets you
-//TODO click between the table and additional stats like different tts and table counts
-//TODO together with the more focused pr level pane
+//TODO(edahl): multiple pages, like say you want to see the development in a lev over all wr tables
+// ? a better data structure
+// ? functionality to browse WR tables
+// ? browse targets
+// ? a side pane that can possibly be collapsable, should be simple JS
+// ? --- it's already a lot of into in one screen, so maybe some selects like show only target times,
+// ? show only target wrs or whatever, or very simple starting view with just your times
+// ? and then click on a level to see all the info for that level
+// ? --- letting you left click a level to see a graph, kinda like the improvements tab in elma stats,
+// ? that show the development from table 1 to whichever is the last one
+// ? together with info like targets, etc., that you would expect for that one level
+// ? and a horizontal line showing your current time
+// ? --- seems that a left pane would be mostly extra clutter
+// ? an alternative would be a header with "Overview" and "Additional stats" that lets you
+// ? click between the table and additional stats like different tts and table counts
+// ? together with the more focused pr level pane
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);
@@ -74,7 +66,7 @@ fn main() {
         }
     };
 
-    let html = match shared::build_initial_html(&wr_tables, &targets_table) {
+    let html = match html::build_initial_html(&wr_tables, &targets_table) {
         Ok(h) => h,
         Err(e) => html::default_error_message(e),
     };
@@ -103,7 +95,7 @@ fn main() {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
                             webview.dispatch(move |webview, _userdata| {
-                                webview.eval(&format!("sortUpdate();"));
+                                webview.eval(&format!("updateSorted();"));
                             });
                         }
                         Ok(_event) => (),
@@ -116,17 +108,15 @@ fn main() {
         move |webview, arg, _userdata: &mut _| {
             use Cmd::*;
             match serde_json::from_str(arg).unwrap() {
-                sort { param, ascending } => {
-                    ////println!("param: {:?}, ascending: {:?}", &param, ascending);
-                    let sort_hint = shared::get_sort_hint(&param, ascending);
-
-                    let (ref rows, ref sidebar) =
-                        match shared::build_update_data(&wr_tables, &targets_table, sort_hint) {
-                            Ok((rows, sidebar)) => (rows, sidebar),
+                updateSorted { param, ascending } => {
+                    let sort_by = shared::get_sort_hint(&param, ascending);
+                    let (ref rows, ref footer) =
+                        match shared::build_update_data(&wr_tables, &targets_table, sort_by) {
+                            Ok((rows, footer)) => (rows, footer),
                             Err(e) => (html::default_error_message(e), String::from("")),
                         };
-                    update_table(webview, &rows);
-                    update_sidebar(webview, &sidebar);
+                    update_table_rows(webview, &rows);
+                    update_table_footer(webview, &footer);
                 }
             }
         },
@@ -134,15 +124,10 @@ fn main() {
     );
 }
 
-fn update_table<'a, T>(webview: &mut WebView<'a, T>, rows: &str) {
-    webview.eval(&format!("updateTable({});", web_view::escape(rows)));
+fn update_table_rows<'a, T>(webview: &mut WebView<'a, T>, rows: &str) {
+    webview.eval(&format!("updateTableRows({});", web_view::escape(rows)));
 }
 
-fn update_sidebar<'a, T>(webview: &mut WebView<'a, T>, sidebar: &str) {
-    webview.eval(&format!("updateSidebar({});", web_view::escape(sidebar)));
+fn update_table_footer<'a, T>(webview: &mut WebView<'a, T>, footer: &str) {
+    webview.eval(&format!("updateTableFooter({});", web_view::escape(footer)));
 }
-
-////#[derive(Debug, Serialize, Deserialize)]
-////struct SortHint {
-////	param: String,
-////	ascending: bool,

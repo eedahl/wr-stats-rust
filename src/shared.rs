@@ -45,6 +45,20 @@ pub enum SortOrder {
     Descending,
 }
 
+pub fn get_next_target(t: &Time, tar: &Targets, cur_wr: &Time) -> Time {
+    match *t {
+        t if t > tar.beginner => tar.beginner,
+        t if t > tar.ok => tar.ok,
+        t if t > tar.good => tar.good,
+        t if t > tar.professional => tar.professional,
+        t if t > tar.world_class => tar.world_class,
+        t if t > tar.legendary => tar.legendary,
+        t if t > tar.godlike => tar.godlike,
+        t if t > *cur_wr => *cur_wr,
+        _ => *cur_wr,
+    }
+}
+
 pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     match sort_param {
         "PR" => SortBy::PR(if ascending {
@@ -81,15 +95,6 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     }
 }
 
-pub fn build_initial_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
-    let (table_rows, sidebar) = build_update_data(
-        wr_tables,
-        targets_table,
-        SortBy::LevelNum(SortOrder::Ascending),
-    )?;
-    Ok(html::format_html(&table_rows, &sidebar))
-}
-
 pub fn build_update_data(
     wr_tables: &[WR],
     targets_table: &[Targets],
@@ -101,14 +106,19 @@ pub fn build_update_data(
     };
 
     let data = io::populate_table_data(&pr_table, &wr_tables);
-
-    // * Sidebar
-    let (p_tt, t_tt) = compute_tts(&data);
-    let sidebar = html::format_sidebar(&p_tt, &t_tt);
-
-    // * Table
-    let last_wr_table = get_last_wr_table(&wr_tables);
+    let last_wr_table = collect_last_wr_table(&wr_tables);
     let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
+
+    // * Footer
+    let (p_tt, target_wr_tt) = compute_tts(&data);
+    let mut target_tt = Time(0);
+    for (i, pr) in pr_table.iter().enumerate() {
+        target_tt = target_tt + get_next_target(&pr, &targets_table[i], &current_wrs[i]);
+    }
+
+    let table_footer = html::format_table_footer(&p_tt, &target_wr_tt, &target_tt);
+
+    // * Body
     let mut collate = data.into_iter()
         .zip(targets_table.into_iter().cloned())
         .zip(current_wrs.into_iter())
@@ -203,21 +213,7 @@ pub fn build_update_data(
 
     let table_rows = html::create_table_rows(&data_sorted, &targets_sorted, &wrs_sorted);
 
-    Ok((table_rows, sidebar))
-}
-
-pub fn get_next_target(t: &Time, tar: &Targets, cur_wr: &Time) -> Time {
-    match *t {
-        t if t > tar.beginner => tar.beginner,
-        t if t > tar.ok => tar.ok,
-        t if t > tar.good => tar.good,
-        t if t > tar.professional => tar.professional,
-        t if t > tar.world_class => tar.world_class,
-        t if t > tar.legendary => tar.legendary,
-        t if t > tar.godlike => tar.godlike,
-        t if t > *cur_wr => *cur_wr,
-        _ => *cur_wr,
-    }
+    Ok((table_rows, table_footer))
 }
 
 fn compute_tts(drs: &[DataRow]) -> (Time, Time) {
@@ -233,19 +229,18 @@ fn compute_tts(drs: &[DataRow]) -> (Time, Time) {
     })
 }
 
-pub fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
+fn collect_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
+    let last_table_num = wr_tables.iter().last().unwrap().table;
+    wr_tables
+        .iter()
+        .filter(|x| x.table == last_table_num)
+        .cloned()
+        .collect()
+}
+
+fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
     prs.iter()
         .zip(cur_wrt.iter())
         .map(|(x, y)| *x.min(&y.time))
         .collect()
-}
-
-pub fn get_last_wr_table(wr_tables: &[WR]) -> Vec<WR> {
-    let last_table = wr_tables.iter().last().unwrap().table;
-    let current_wrs: Vec<WR> = wr_tables
-        .iter()
-        .filter(|x| x.table == last_table)
-        .cloned()
-        .collect();
-    current_wrs
 }
