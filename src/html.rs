@@ -1,100 +1,9 @@
 use elma::Time;
-use failure::Error;
-use shared::{build_update_data, get_next_target, DataRow, SortBy, SortOrder, Targets, WR};
-
-pub fn build_initial_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
-    let (table_rows, table_footer) = build_update_data(
-        wr_tables,
-        targets_table,
-        SortBy::LevelNum(SortOrder::Ascending),
-    )?;
-    Ok(format_html(&table_rows, &table_footer))
-}
-
-pub fn format_html(table_rows: &str, table_footer: &str) -> String {
-    format!(
-        r#"
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        {bootstrap}
-        {c3_styles}
-        {styles}
-    </head>
-    <body>
-        <div class="container-fluid">
-            <div class="row content">
-                <div class="col-sm-12" id="table-container">
-                    <div id="chart"></div>
-                    <table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
-                        <thead>
-                            <tr>
-                                <th scope="col" id="lev" class="sort">Level</th>
-                                <th scope="col" id="pr" class="sort">PR</th>
-                                <th scope="col" id="wr_beat" class="sort"">WR beat</th>
-                                <th scope="col" id="kuski_beat" class="sort">Kuski beat (<strong><em>table</em></strong>)</th>
-                                <th scope="col" id="target_wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
-                                <th scope="col" id="kuski_to_beat" class="sort">Kuski to beat (<strong><em>table</em></strong>)</th>
-                                <th scope="col" id="target" class="sort">Next target</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            {table_rows}
-                        </tbody>
-                        <tfoot id="table-footer">
-                            {table_footer}
-                        </tfoot> 
-                    </table>
-                </div>
-            </div>
-        </div>
-        <script charset="utf-8">{d3_script}</script>
-        {c3_script}
-        {script}
-    </body>
-</html>
-            "#,
-        // ? {bootstrap_js}
-        // ? bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.min.js")),
-        // ? {plotly}
-        // ? plotly = inline_script(include_str!("plotly-latest.min.js")),
-        // ? {jquery}
-        // ? jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
-        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
-        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
-        d3_script = include_str!("d3/d3.min.js"),
-        c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
-        styles = inline_style(include_str!("styles.css")),
-        script = inline_script(include_str!("wr-stats.js")),
-        table_rows = table_rows,
-        table_footer = table_footer
-    )
-}
-
-pub fn format_table_footer(p_tt: &Time, target_wr_tt: &Time, target_tt: &Time) -> String {
-    format!(
-        r#"
-<tr>
-    <td></td>
-    <td id="p_tt" class="tt">{p_tt}</td>
-    <td></td>
-    <td></td>
-    <td id="target_wr_tt" class="tt">{target_wr_tt} (<em><strong>{target_wr_tt_diff}</em></strong>)</td>
-    <td></td>
-    <td>{target_tt} (<em><strong>{target_tt_diff}</td>
-</tr>"#,
-        p_tt = p_tt,
-        target_wr_tt = target_wr_tt,
-        target_wr_tt_diff = time_to_diff_string(&(*p_tt - *target_wr_tt)),
-        target_tt = target_tt,
-        target_tt_diff = time_to_diff_string(&(*p_tt - *target_tt))
-    )
-}
+use shared::{get_next_target, DataRow, Targets};
+use std::fmt::Debug;
 
 /*
-ideas for data
+? ideas for data
 Personal total time (TT)
 Target WRs TT
 TT of current WRs
@@ -116,30 +25,104 @@ Number of times past table 350
 Number of times past table 400
 Your closest targets are: 18. Spiral (+,01), 3. Twin Peaks (+,01) etc.
 Worst differences to see where need to improve a lot
-</ul>
+
+// ? Use any of these?
+// ? {bootstrap_js}
+// ? bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.min.js")),
+// ? {plotly}
+// ? plotly = inline_script(include_str!("plotly-latest.min.js")),
+// ? {jquery}
+// ? jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
 */
 
-pub fn default_error_message(e: Error) -> String {
+pub fn index() -> String {
+    format!(
+r#"<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {bootstrap}
+        {c3_styles}
+        {styles}
+    </head>
+    <body>
+    <!--[if lt IE 9]>
+    <div class="ie-upgrade-container">
+        <p class="ie-upgrade-message">Please, upgrade Internet Explorer to continue using this software.</p>
+        <a class="ie-upgrade-link" target="_blank" href="https://www.microsoft.com/en-us/download/internet-explorer.aspx">Upgrade</a>
+    </div>
+    <![endif]-->
+    <!--[if gte IE 9 | !IE ]> <!-->
+        <div class="container-fluid" id="view"></div>
+        <script charset="utf-8">{d3_script}</script>
+        {c3_script}
+        {script}
+    <![endif]-->
+    </body>
+</html>"#,
+
+        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
+        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
+        d3_script = include_str!("d3/d3.min.js"),
+        c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
+        styles = inline_style(include_str!("styles.css")),
+        script = inline_script(include_str!("wr-stats.js")),
+    )
+}
+
+pub fn table_view() -> String {
+    format!(
+r#"<table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+    <thead>
+        <tr>
+            <th scope="col" id="lev" class="sort">Level</th>
+            <th scope="col" id="pr" class="sort">PR</th>
+            <th scope="col" id="wr-beat" class="sort"">WR beat</th>
+            <th scope="col" id="kuski-beat" class="sort">Kuski beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target-wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
+            <th scope="col" id="kuski-to-beat" class="sort">Kuski to beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target" class="sort">Next target</th>
+        </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+    <tfoot id="table-footer">
+    </tfoot> 
+</table>"#)
+}
+
+pub fn level_view() -> String {
     format!(
         r#"
-            <!doctype html>
-            <html lang="en">
-                <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                    {bootstrap}
-                    {styles}
-                </head>
-                <body>
-                    <h2>There was an error while running the program</h2>
-                    <p>Likely causes are:</p>
-                    <ul> 
-                        <li>Could not find state.dat in folder, and fallback to stats.txt failed</li>
-                        <li>Could not download either of wr-stats_tables.csv or wr-stats_targets.csv, and could not find local copies in folder</li>
-                    </ul>
-                    <p>{error:?}</p>
-                </body>
-            </html>
+<h1>Level view</a>
+<p class="to-table-view">Go to table view</p>
+<div id="graph"></div>
+"#
+    )
+}
+
+pub fn default_error_message(e: impl Debug) -> String {
+    format!(
+        r#"
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {bootstrap}
+        {styles}
+    </head>
+    <body>
+        <h2>There was an error while running the program</h2>
+        <p>Likely causes are:</p>
+        <ul> 
+            <li>Could not find state.dat in folder, and fallback to stats.txt failed</li>
+            <li>Could not download either of wr-stats_tables.csv or wr-stats_targets.csv, and could not find local copies in folder</li>
+        </ul>
+        <p>{error:#?}</p>
+    </body>
+</html>
             "#,
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.css")),
         styles = inline_style(include_str!("styles.css")),
@@ -235,6 +218,27 @@ fn time_to_tagged_target_td_with_diff(t: &Time, tar: &Targets, cur_wr: &Time) ->
     )
 }
 
+pub fn format_table_footer(p_tt: &Time, target_wr_tt: &Time, target_tt: &Time) -> String {
+    format!(
+        r#"
+<tr>
+    <td></td>
+    <td id="p_tt" class="tt">{p_tt}</td>
+    <td></td>
+    <td></td>
+    <td id="target_wr_tt" class="tt">{target_wr_tt} (<em><strong>{target_wr_tt_diff}</em></strong>)</td>
+    <td></td>
+    <td>{target_tt} (<em><strong>{target_tt_diff})</td>
+</tr>
+"#,
+        p_tt = p_tt,
+        target_wr_tt = target_wr_tt,
+        target_wr_tt_diff = time_to_diff_string(&(*p_tt - *target_wr_tt)),
+        target_tt = target_tt,
+        target_tt_diff = time_to_diff_string(&(*p_tt - *target_tt))
+    )
+}
+
 fn time_to_tagged_td_with_diff(t: &Time, tar: &Targets, cur_wr: &Time, t_cmp: &Time) -> String {
     let class = get_time_class(t, tar, cur_wr);
     format!(
@@ -317,3 +321,82 @@ fn inline_style(s: &str) -> String {
 fn inline_script(s: &str) -> String {
     format!(r#"<script>{}</script>"#, s)
 }
+
+/* Deprecated
+pub fn build_initial_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
+    let (table_rows, table_footer) = build_table_update_data(
+        wr_tables,
+        targets_table,
+        SortBy::LevelNum(SortOrder::Ascending),
+    )?;
+    Ok(format_html(&table_rows, &table_footer))
+}
+fn format_html(table_rows: &str, table_footer: &str) -> String {
+    format!(
+        r#"
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {bootstrap}
+        {c3_styles}
+        {styles}
+    </head>
+    <body>
+    <!--[if lt IE 9]>
+    <div class="ie-upgrade-container">
+        <p class="ie-upgrade-message">Please, upgrade Internet Explorer to continue using this software.</p>
+        <a class="ie-upgrade-link" target="_blank" href="https://www.microsoft.com/en-us/download/internet-explorer.aspx">Upgrade</a>
+    </div>
+    <![endif]-->
+    <!--[if gte IE 9 | !IE ]> <!-->
+        <div class="container-fluid" id="contents">
+            {contents}
+        </div>
+        <script charset="utf-8">{d3_script}</script>
+        {c3_script}
+        {script}
+    <![endif]-->
+    </body>
+</html>
+            "#,
+        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
+        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
+        d3_script = include_str!("d3/d3.min.js"),
+        c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
+        styles = inline_style(include_str!("styles.css")),
+        script = inline_script(include_str!("wr-stats.js")),
+        contents = format_table(table_rows, table_footer)
+    )
+}
+
+fn format_table(table_rows: &str, table_footer: &str) -> String {
+    format!(
+        r#"
+<table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+    <thead>
+        <tr>
+            <th scope="col" id="lev" class="sort">Level</th>
+            <th scope="col" id="pr" class="sort">PR</th>
+            <th scope="col" id="wr-beat" class="sort"">WR beat</th>
+            <th scope="col" id="kuski-beat" class="sort">Kuski beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target-wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
+            <th scope="col" id="kuski-to-beat" class="sort">Kuski to beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target" class="sort">Next target</th>
+        </tr>
+    </thead>
+    <tbody id="table-body">
+        {table_rows}
+    </tbody>
+    <tfoot id="table-footer">
+        {table_footer}
+    </tfoot> 
+</table>
+            "#,
+        table_rows = table_rows,
+        table_footer = table_footer
+    )
+}
+
+*/

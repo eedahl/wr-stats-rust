@@ -4,7 +4,6 @@ extern crate elma;
 use elma::Time;
 use failure::Error;
 use shared::{DataRow, Targets, WR};
-use std::path::Path;
 
 pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {
     let level_names = vec![
@@ -91,10 +90,8 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
 }
 
 pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
-    let path = Path::new("wr-stats_targets.csv");
-    let mut r = csv::Reader::from_path(path)?;
-    
-    Ok(r.records()
+    Ok(csv::Reader::from_path("wr-stats_targets.csv")?
+        .records()
         .map(|r| r.unwrap_or(csv::StringRecord::from(vec!["00:00:00"; 7])))
         .map(|row| Targets {
             godlike: Time::from(&row[0]),
@@ -109,10 +106,8 @@ pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
 }
 
 pub fn load_wr_tables() -> Result<Vec<WR>, Error> {
-    let path = Path::new("wr-stats_tables.csv");
-    let mut r = csv::Reader::from_path(path)?;
-    
-    Ok(r.records()
+    Ok(csv::Reader::from_path("wr-stats_tables.csv")?
+        .records()
         .map(|r| r.unwrap())
         .map(|row| WR {
             table: row[0].parse::<i32>().unwrap(),
@@ -124,9 +119,7 @@ pub fn load_wr_tables() -> Result<Vec<WR>, Error> {
 }
 
 pub fn load_state() -> Result<Vec<Time>, elma::ElmaError> {
-    let state = elma::state::State::load("state.dat")?;
-
-    Ok(state
+    Ok(elma::state::State::load("state.dat")?
         .times
         .iter()
         .take(54)
@@ -134,28 +127,20 @@ pub fn load_state() -> Result<Vec<Time>, elma::ElmaError> {
         .collect())
 }
 
-pub fn read_stats() -> Result<Vec<Time>, Error> {
-    let s = ::std::fs::read_to_string("stats.txt")?;
-
-    let mut prt = Vec::new();
-    let mut level_counter = 0;
-    let mut level_found = false;
-    for line in s.lines() {
-        let mut data: Vec<&str> = line.trim().split_whitespace().collect();
-
-        if data.len() != 0 && level_found {
-            prt.push(Time::from(data[0].as_ref()));
-            level_counter += 1;
-            level_found = false;
-        }
-
-        if data.len() != 0 && data[0] == "Level" {
-            level_found = true;
-        }
-
-        if level_counter == 54 {
-            break;
-        }
-    }
-    Ok(prt)
+pub fn load_stats() -> Result<Vec<Time>, Error> {
+    Ok(::std::fs::read_to_string("stats.txt")?
+        .lines()
+        .collect::<Vec<_>>()
+        .windows(2)
+        .filter(|entry_pair| entry_pair[0].starts_with("Level"))
+        .take(54)
+        .map(|entry_pair| {
+            Time::from(
+                entry_pair[1]
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or("10:00:00"),
+            )
+        })
+        .collect())
 }

@@ -95,14 +95,14 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     }
 }
 
-pub fn build_update_data(
+pub fn build_table_update_data(
     wr_tables: &[WR],
     targets_table: &[Targets],
     sort_by: SortBy,
 ) -> Result<(String, String), Error> {
     let pr_table = match io::load_state() {
         Ok(t) => t,
-        Err(_) => io::read_stats()?,
+        Err(_) => io::load_stats()?,
     };
 
     let data = io::populate_table_data(&pr_table, &wr_tables);

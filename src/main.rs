@@ -6,6 +6,7 @@ extern crate web_view;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
+#[macro_use]
 extern crate serde_json;
 
 mod html;
@@ -58,10 +59,11 @@ fn main() {
         }
     };
 
-    let html = match html::build_initial_html(&wr_tables, &targets_table) {
+    let html = html::index();
+    /* match html::build_initial_html(&wr_tables, &targets_table) {
         Ok(h) => h,
         Err(e) => html::default_error_message(e),
-    };
+    };*/
 
     let size = (1000, 1000);
     let resizable = true;
@@ -76,18 +78,16 @@ fn main() {
         debug,
         // * Init
         |webview| {
-            spawn(move || {
+            spawn(move || -> Result<(), failure::Error> {
                 let (tx, rx) = channel();
-                let mut watcher: RecommendedWatcher =
-                    Watcher::new(tx, Duration::from_secs(1)).unwrap();
-                watcher
-                    .watch("state.dat", RecursiveMode::NonRecursive)
-                    .unwrap();
+                let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(1))?;
+
+                watcher.watch("state.dat", RecursiveMode::NonRecursive)?;
                 loop {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
                             webview.dispatch(move |webview, _userdata| {
-                                webview.eval(&format!("updateSorted();"));
+                                webview.eval(&format!("tableView.display();"));
                             });
                         }
                         Ok(_event) => (),
@@ -100,16 +100,23 @@ fn main() {
         move |webview, arg, _userdata: &mut _| {
             use Cmd::*;
             match serde_json::from_str(arg).unwrap() {
-                updateSorted { param, ascending } => {
+                displayView { view } => match view.as_ref() {
+                    "table" => display_table_view(webview),
+                    "level" => display_level_view(webview),
+                    v => println!("View request not recognised: {}", v),
+                },
+                updateTableView { param, ascending } => {
                     let sort_by = shared::get_sort_hint(&param, ascending);
                     let (ref rows, ref footer) =
-                        match shared::build_update_data(&wr_tables, &targets_table, sort_by) {
-                            Ok((rows, footer)) => (rows, footer),
-                            Err(e) => (html::default_error_message(e), String::from("")),
-                        };
-                    update_table_rows(webview, &rows);
-                    update_table_footer(webview, &footer);
+                        shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
+                            .unwrap_or_else(|err| {
+                                (html::default_error_message(err), String::new())
+                            });
+
+                    update_table_view(webview, &rows, &footer)
                 }
+                updateLevelView { level } => update_level_view(webview, level),
+                log { text } => println!("{}", text),
             }
         },
         userdata,
@@ -120,14 +127,37 @@ fn main() {
 #[derive(Deserialize)]
 #[serde(tag = "cmd")]
 enum Cmd {
-    updateSorted { param: String, ascending: bool },
+    displayView { view: String },
+    updateTableView { param: String, ascending: bool },
+    updateLevelView { level: i32 },
+    log { text: String },
     // * Admissible commands go here
 }
 
-fn update_table_rows<'a, T>(webview: &mut WebView<'a, T>, rows: &str) {
-    webview.eval(&format!("updateTableRows({});", web_view::escape(rows)));
+fn display_table_view<'a, T>(webview: &mut WebView<'a, T>) {
+    webview.eval(&format!(
+        "view.display({})",
+        web_view::escape(&json!({ "view": "table", "template": html::table_view()}).to_string())
+    ));
 }
 
-fn update_table_footer<'a, T>(webview: &mut WebView<'a, T>, footer: &str) {
-    webview.eval(&format!("updateTableFooter({});", web_view::escape(footer)));
+fn display_level_view<'a, T>(webview: &mut WebView<'a, T>) {
+    webview.eval(&format!(
+        "view.display({})",
+        web_view::escape(&json!({ "view": "level", "template": html::level_view(), }).to_string()),
+    ));
+}
+
+fn update_table_view<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
+    webview.eval(&format!(
+        "view.update({})",
+        web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),
+    ));
+}
+
+fn update_level_view<'a, T>(webview: &mut WebView<'a, T>, level: i32) {
+    webview.eval(&format!(
+        "view.update({})",
+        web_view::escape(&json!({ "view": "table", "level": level}).to_string()),
+    ));
 }
