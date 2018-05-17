@@ -2,6 +2,7 @@ use elma::Time;
 use failure::Error;
 use html;
 use io;
+use serde_json;
 
 #[derive(Debug, Clone)]
 pub struct Targets {
@@ -93,6 +94,16 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
         }),
         &_ => SortBy::LevelNum(SortOrder::Ascending),
     }
+}
+
+pub fn build_level_update_data(wr_tables: &[WR], level: i32) -> Result<serde_json::Value, Error> {
+    Ok(serde_json::to_value(
+        wr_tables
+            .into_iter()
+            .filter(|x| (*x).lev == level)
+            .map(|x| x.time.0)
+            .collect::<Vec<_>>(),
+    )?)
 }
 
 pub fn build_table_update_data(

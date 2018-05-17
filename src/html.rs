@@ -35,6 +35,7 @@ Worst differences to see where need to improve a lot
 // ? jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
 */
 
+// ! Index
 pub fn index() -> String {
     format!(
 r#"<!doctype html>
@@ -61,19 +62,22 @@ r#"<!doctype html>
     <![endif]-->
     </body>
 </html>"#,
-
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
-        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
         d3_script = include_str!("d3/d3.min.js"),
+        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
         c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
         styles = inline_style(include_str!("styles.css")),
         script = inline_script(include_str!("wr-stats.js")),
     )
 }
 
+// ! Table view
 pub fn table_view() -> String {
     format!(
-r#"<table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+r#"
+<p>Table view</p>
+<p id="to-chart-view" onclick="rpc.request({{cmd: 'displayView', view: 'level', }});">Go to chart view</p>
+<table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
     <thead>
         <tr>
             <th scope="col" id="lev" class="sort">Level</th>
@@ -92,16 +96,19 @@ r#"<table id="wr-table" class="table table-sm table-condensed table-dark table-s
 </table>"#)
 }
 
+// ! Level view
 pub fn level_view() -> String {
     format!(
         r#"
-<h1>Level view</a>
-<p class="to-table-view">Go to table view</p>
-<div id="graph"></div>
+<p>Level view</p>
+<p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
+<p onclick="rpc.updateLevelView();">Update level view</p>
+<div id="chart" class="container-fluid"></div>
 "#
     )
 }
 
+// ? Default error message?
 pub fn default_error_message(e: impl Debug) -> String {
     format!(
         r#"
@@ -321,82 +328,3 @@ fn inline_style(s: &str) -> String {
 fn inline_script(s: &str) -> String {
     format!(r#"<script>{}</script>"#, s)
 }
-
-/* Deprecated
-pub fn build_initial_html(wr_tables: &[WR], targets_table: &[Targets]) -> Result<String, Error> {
-    let (table_rows, table_footer) = build_table_update_data(
-        wr_tables,
-        targets_table,
-        SortBy::LevelNum(SortOrder::Ascending),
-    )?;
-    Ok(format_html(&table_rows, &table_footer))
-}
-fn format_html(table_rows: &str, table_footer: &str) -> String {
-    format!(
-        r#"
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        {bootstrap}
-        {c3_styles}
-        {styles}
-    </head>
-    <body>
-    <!--[if lt IE 9]>
-    <div class="ie-upgrade-container">
-        <p class="ie-upgrade-message">Please, upgrade Internet Explorer to continue using this software.</p>
-        <a class="ie-upgrade-link" target="_blank" href="https://www.microsoft.com/en-us/download/internet-explorer.aspx">Upgrade</a>
-    </div>
-    <![endif]-->
-    <!--[if gte IE 9 | !IE ]> <!-->
-        <div class="container-fluid" id="contents">
-            {contents}
-        </div>
-        <script charset="utf-8">{d3_script}</script>
-        {c3_script}
-        {script}
-    <![endif]-->
-    </body>
-</html>
-            "#,
-        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
-        c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
-        d3_script = include_str!("d3/d3.min.js"),
-        c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
-        styles = inline_style(include_str!("styles.css")),
-        script = inline_script(include_str!("wr-stats.js")),
-        contents = format_table(table_rows, table_footer)
-    )
-}
-
-fn format_table(table_rows: &str, table_footer: &str) -> String {
-    format!(
-        r#"
-<table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
-    <thead>
-        <tr>
-            <th scope="col" id="lev" class="sort">Level</th>
-            <th scope="col" id="pr" class="sort">PR</th>
-            <th scope="col" id="wr-beat" class="sort"">WR beat</th>
-            <th scope="col" id="kuski-beat" class="sort">Kuski beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target-wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
-            <th scope="col" id="kuski-to-beat" class="sort">Kuski to beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target" class="sort">Next target</th>
-        </tr>
-    </thead>
-    <tbody id="table-body">
-        {table_rows}
-    </tbody>
-    <tfoot id="table-footer">
-        {table_footer}
-    </tfoot> 
-</table>
-            "#,
-        table_rows = table_rows,
-        table_footer = table_footer
-    )
-}
-
-*/

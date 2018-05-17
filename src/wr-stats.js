@@ -8,24 +8,30 @@ window.onload = function () {
 };
 
 var rpc = {
+    request: function (arg) {
+        if (arg['cmd'] != 'log') {
+            rpc.log('request:', JSON.stringify(arg));
+        }
+        window.external.invoke(JSON.stringify(arg));
+    },
     displayView: function (view) {
         rpc.request({
             cmd: 'displayView',
             view: view,
         });
     },
-    updateTableView: function (param, ascending) {
+    updateTableView: function () {
         rpc.request({
             cmd: 'updateTableView',
-            param: param,
-            ascending: ascending
+            param: tableView.param,
+            ascending: tableView.ascending
         });
     },
-    request: function (arg) {
-        if (arg['cmd'] != 'log') {
-            rpc.log('request:', JSON.stringify(arg));
-        }
-        window.external.invoke(JSON.stringify(arg));
+    updateLevelView: function () {
+        rpc.request({
+            cmd: 'updateLevelView',
+            level: levelView.level
+        });
     },
     log: function () {
         var s = '';
@@ -43,7 +49,7 @@ var rpc = {
 
 }
 
-var view = {
+var views = {
     activeView: 'none',
     display: function (arg) {
         var obj = JSON.parse(arg);
@@ -57,16 +63,17 @@ var view = {
                 levelView.init();
                 break;
         }
+
     },
     update: function (arg) {
         var obj = JSON.parse(arg);
         if (this.activeView == obj['view']) {
             switch (this.activeView) {
                 case 'table':
-                    document.getElementById('table-body').innerHTML = obj['rows'];
-                    document.getElementById('table-footer').innerHTML = obj['footer'];
+                    tableView.update(obj['rows'], obj['footer']);
                     break;
                 case 'level':
+                    levelView.update(obj['level'], obj['times']);
                     break;
             }
         }
@@ -83,44 +90,116 @@ var tableView = {
             'pr': 'PR',
             'wr-beat': 'DiffToPrevWR',
             'kuski-beat': 'Table',
-            'target-wr': 'DiffToNextWr',
+            'target-wr': 'DiffToNextWR',
             'kuski-to-beat': 'Table',
             'target': 'DiffToNextTarget',
         };
         for (var key in colSortHint) {
-            rpc.log(key, colSortHint[key]);
             (function () {
                 var k = colSortHint[key];
                 document.getElementById(key).addEventListener("click", function () {
                     rpc.log('sorting', k)
                     tableView.param = k;
-                    tableView.update();
+                    rpc.updateTableView();
                 });
             }());
         }
-        rpc.updateTableView(this.param, this.ascending);
+        rpc.updateTableView();
     },
-    update: function () {
+    update: function (rows, footer) {
+        document.getElementById('table-body').innerHTML = rows;
+        document.getElementById('table-footer').innerHTML = footer;
         this.ascending = !this.ascending;
-        rpc.log('update', this.param);
-        rpc.updateTableView(this.param, this.ascending);
     },
 }
 
 var levelView = {
     level: 0,
+    //chart: null,
     init: function () {
+        this.level = 48;
+        //var chart = 
+        //this.chart = 
+        //c3.generate
+        //rpc.log("CHART", this.chart)
+
+        rpc.updateLevelView();
+    },
+    update: function (level, times) {
+        this.level = level;
+        //chart.load
+        //targets horizontal bars/colouring
         c3.generate({
             bindto: '#chart',
             data: {
                 columns: [
-                    ['data1', 30, 200, 100, 400, 150, 250],
-                    ['data2', 50, 20, 10, 40, 15, 25]
-                ]
+                    ['Times'].concat(times)
+                ],
+            },
+            axis: {
+                x: {
+                    tick: {
+                        count: 20,
+                        format: function (d) {
+                            return Math.floor(d);
+                        }
+                    },
+                },
+                y: {
+                    label: {
+                        text: 'Times',
+                        position: 'outer-middle'
+                    },
+                    tick: {
+                        format: d3.format("") // ADD
+                    }
+                },
+                y2: {
+                    show: true,
+                    label: {
+                        text: 'Targets',
+                        position: 'outer-middle'
+                    }
+                }
+            },
+            point: {
+                show: false
+            },
+            size: {
+                width: 768,
+                height: 450,
+            },
+            padding: {
+                right: 20,
+            },
+            grid: {
+                x: {
+                    show: false
+                },
+                y: {
+                    lines: [{
+                            value: 4500,
+                            text: 'Label on line 1',
+                            class: 'professional'
+                        },
+                        {
+                            value: 4200,
+                            text: 'Label on line 2',
+                            class: 'godlike'
+                        },
+                        {
+                            value: 3000,
+                            text: 'Label on line 3',
+                            class: 'wr'
+                        }
+                    ]
+                }
+            },
+            zoom: {
+                enabled: true,
+                rescale: true
             }
         });
-    },
-    update: function (level) {
-        this.level = level;
-    },
+
+    }
 }

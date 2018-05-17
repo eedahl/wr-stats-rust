@@ -87,7 +87,7 @@ fn main() {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
                             webview.dispatch(move |webview, _userdata| {
-                                webview.eval(&format!("tableView.display();"));
+                                webview.eval(&format!("rpc.updateTableView();"));
                             });
                         }
                         Ok(_event) => (),
@@ -115,7 +115,10 @@ fn main() {
 
                     update_table_view(webview, &rows, &footer)
                 }
-                updateLevelView { level } => update_level_view(webview, level),
+                updateLevelView { level } => {
+                    let data = shared::build_level_update_data(&wr_tables, level).unwrap();
+                    update_level_view(webview, level, data)
+                }
                 log { text } => println!("{}", text),
             }
         },
@@ -136,28 +139,33 @@ enum Cmd {
 
 fn display_table_view<'a, T>(webview: &mut WebView<'a, T>) {
     webview.eval(&format!(
-        "view.display({})",
+        "views.display({})",
         web_view::escape(&json!({ "view": "table", "template": html::table_view()}).to_string())
     ));
 }
 
 fn display_level_view<'a, T>(webview: &mut WebView<'a, T>) {
     webview.eval(&format!(
-        "view.display({})",
+        "views.display({})",
         web_view::escape(&json!({ "view": "level", "template": html::level_view(), }).to_string()),
     ));
 }
 
 fn update_table_view<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
     webview.eval(&format!(
-        "view.update({})",
+        "views.update({})",
         web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),
     ));
 }
 
-fn update_level_view<'a, T>(webview: &mut WebView<'a, T>, level: i32) {
+fn update_level_view<'a, T>(webview: &mut WebView<'a, T>, level: i32, data: serde_json::Value) {
+    /*println!("{}", data.to_string());
+    println!(
+        "{}",
+        json!({ "view": "level", "level": level, "times": data}).to_string()
+    );*/
     webview.eval(&format!(
-        "view.update({})",
-        web_view::escape(&json!({ "view": "table", "level": level}).to_string()),
+        "views.update({})",
+        web_view::escape(&json!({ "view": "level", "level": level, "times": data}).to_string()),
     ));
 }
