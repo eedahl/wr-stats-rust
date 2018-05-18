@@ -38,7 +38,8 @@ Worst differences to see where need to improve a lot
 // ! Index
 pub fn index() -> String {
     format!(
-r#"<!doctype html>
+r#"
+<!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -61,7 +62,8 @@ r#"<!doctype html>
         {script}
     <![endif]-->
     </body>
-</html>"#,
+</html>
+"#,     
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
         d3_script = include_str!("d3/d3.min.js"),
         c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
@@ -93,7 +95,8 @@ r#"
     </tbody>
     <tfoot id="table-footer">
     </tfoot> 
-</table>"#)
+</table>
+"#)
 }
 
 // ! Level view
@@ -104,14 +107,13 @@ pub fn level_view() -> String {
 <p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
 <p onclick="rpc.updateLevelView();">Update level view</p>
 <div id="chart" class="container-fluid"></div>
-"#
-    )
+"#)
 }
 
 // ? Default error message?
 pub fn default_error_message(e: impl Debug) -> String {
     format!(
-        r#"
+r#"
 <!doctype html>
 <html lang="en">
     <head>
@@ -130,7 +132,7 @@ pub fn default_error_message(e: impl Debug) -> String {
         <p>{error:#?}</p>
     </body>
 </html>
-            "#,
+"#,
         bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.css")),
         styles = inline_style(include_str!("styles.css")),
         error = e
@@ -203,6 +205,7 @@ pub fn create_table_rows(
     html_table_rows
 }
 
+// TODO(edahl)
 fn tt_to_target_tt_td_with_diff(t: &Time, tar: &Targets, cur_wr: &Time) -> String {
     let target = &get_next_target(&t, &tar, &cur_wr);
     let class = &get_time_class(&target, &tar, &cur_wr);
@@ -295,8 +298,6 @@ fn times_to_diff(t1: &Time, t2: &Time) -> String {
 }
 
 fn time_to_diff_string(t: &Time) -> String {
-    //let pos_t: Time = if t.0 < 0 { Time(-t.0) } else { *t };
-
     let (negative, h, m, s, hd) = t.to_parts();
     let sign = if negative { "-" } else { "+" };
 

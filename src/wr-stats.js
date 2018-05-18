@@ -85,25 +85,44 @@ var tableView = {
     ascending: true,
     init: function () {
         //for (var key in colSortHint) {
-        var colSortHint = {
-            'lev': 'LevelNum',
-            'pr': 'PR',
-            'wr-beat': 'DiffToPrevWR',
-            'kuski-beat': 'Table',
-            'target-wr': 'DiffToNextWR',
-            'kuski-to-beat': 'Table',
-            'target': 'DiffToNextTarget',
-        };
-        for (var key in colSortHint) {
-            (function () {
-                var k = colSortHint[key];
-                document.getElementById(key).addEventListener("click", function () {
-                    rpc.log('sorting', k)
-                    tableView.param = k;
-                    rpc.updateTableView();
-                });
-            }());
-        }
+        var colSortHint = [{
+                'id': 'lev',
+                'hint': 'LevelNum'
+            },
+            {
+                'id': 'pr',
+                'hint': 'PR'
+            },
+            {
+                'id': 'wr-beat',
+                'hint': 'DiffToPrevWR'
+            },
+            {
+                'id': 'kuski-beat',
+                'hint': 'Table'
+            },
+            {
+                'id': 'target-wr',
+                'hint': 'DiffToNextWR'
+            },
+            {
+                'id': 'kuski-to-beat',
+                'hint': 'Table'
+            },
+            {
+                'id': 'target',
+                'hint': 'DiffToNextTarget'
+            },
+        ];
+
+        colSortHint.map(function (val) {
+            document.getElementById(val.id).addEventListener("click", function () {
+                rpc.log('sorting', val);
+                tableView.param = val.hint;
+                rpc.updateTableView();
+            })
+        });
+
         rpc.updateTableView();
     },
     update: function (rows, footer) {
@@ -134,7 +153,7 @@ var levelView = {
             data: {
                 columns: [
                     ['Times'].concat(times)
-                ],
+                ]
             },
             axis: {
                 x: {
@@ -162,6 +181,7 @@ var levelView = {
                     }
                 }
             },
+
             point: {
                 show: false
             },
