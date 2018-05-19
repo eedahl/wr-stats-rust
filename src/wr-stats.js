@@ -255,24 +255,35 @@ var levelView = {
 }
 
 function formatTime(time) {
+    var pos = true;
+    if (time < 0) {
+        pos = false;
+        time = -time;
+    }
     var hdrs = parseInt(time % 100);
     var sec = parseInt((time / 100)) % 60;
     var min = parseInt((time / (100 * 60))) % 60;
     var hrs = parseInt(time / (100 * 60 * 60));
     var lz = d3.format("02d");
-    var str = (time < 0) ? '-' : '';
+    var str = (pos) ? '' : '-';
     str = str + ((hrs > 0) ? (lz(hrs) + ':') : '');
     str = str + lz(min) + ':' + lz(sec) + ',' + lz(hdrs);
     return str;
 }
 
 function formatTimeDiff(time) {
+    var pos = true;
+    if (time < 0) {
+        pos = false;
+        time = -time;
+    }
+
     var hdrs = parseInt(time % 100);
     var sec = parseInt((time / 100)) % 60;
     var min = parseInt((time / (100 * 60))) % 60;
     var hrs = parseInt(time / (100 * 60 * 60));
     var lz = d3.format("02d");
-    var str = (time < 0) ? '-' : '+';
+    var str = (pos) ? '+' : '-';
     str = str + ((hrs > 0) ? (hrs + ':') : '');
     str = str + ((hrs > 0) ? ((min > 0) ? lz(min) : '') : (min > 0) ? (min + ':') : '');
     str = str + ((min > 0) ? lz(sec) : sec) + ',';
@@ -323,7 +334,7 @@ function formatRow(row) {
         wr_beat_table +
         "</em></strong>)</td> \
         <td class=\"" +
-        wr_beat_class + "\">" + // ! target wr
+        wr_not_beat_class + "\">" + // ! target wr
         (isNaN(wr_not_beat_time) ? wr_not_beat_time : formatTime(wr_not_beat_time)) +
         " <span class=\"diff\">(<em><strong>" +
         formatTimeDiff(pr.time - wr_not_beat_time) +
