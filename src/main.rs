@@ -96,21 +96,40 @@ fn main() {
                 displayView { view } => match view.as_ref() {
                     "table" => display_table_view(webview),
                     "level" => display_level_view(webview),
-                    v => println!("View request not recognised: {}", v),
+                    v => println!("View in display request not recognised: {}", v),
+                },
+                updateView { view, arg } => match view.as_ref() {
+                    "table" => {
+                        #[derive(Deserialize)]
+                        struct ViewArgs(String, bool);
+                        let ViewArgs(param, ascending) = serde_json::from_value(arg).unwrap();
+                        let sort_hint = shared::get_sort_hint(&param, ascending);
+                        let data = shared::build_table_update_data_json(
+                            &wr_tables,
+                            &targets_table,
+                            sort_hint,
+                        ).unwrap();
+                        update_view_json(webview, "table", data)
+                    }
+                    "level" => {
+                        #[derive(Deserialize)]
+                        struct ViewArgs(i32);
+                        let ViewArgs(level) = serde_json::from_value(arg).unwrap();
+                        let data = shared::build_level_update_data(&wr_tables, level).unwrap();
+                        update_level_view(webview, data)
+                    }
+                    v => println!("View in update request not recognised: {}", v),
                 },
                 updateTableView { param, ascending } => {
                     //a = hent data
                     //b = prosesser a
                     //send json b
                     let sort_by = shared::get_sort_hint(&param, ascending);
-                    let sort_by_json = shared::get_sort_hint(&param, ascending);
-                    shared::build_table_update_data_json(&wr_tables, &targets_table, sort_by_json);
                     let (ref rows, ref footer) =
                         shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
                             .unwrap_or_else(|err| {
                                 (html::default_error_message(err), String::new())
                             });
-
                     update_table_view(webview, &rows, &footer)
                 }
                 updateLevelView { level } => {
@@ -128,10 +147,23 @@ fn main() {
 #[derive(Deserialize)]
 #[serde(tag = "cmd")]
 enum Cmd {
-    displayView { view: String },
-    updateTableView { param: String, ascending: bool },
-    updateLevelView { level: i32 },
-    log { text: String },
+    displayView {
+        view: String,
+    },
+    updateView {
+        view: String,
+        arg: serde_json::Value,
+    },
+    updateTableView {
+        param: String,
+        ascending: bool,
+    },
+    updateLevelView {
+        level: i32,
+    },
+    log {
+        text: String,
+    },
     // * Admissible commands go here
 }
 

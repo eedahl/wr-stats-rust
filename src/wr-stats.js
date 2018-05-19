@@ -20,6 +20,13 @@ var rpc = {
             view: view,
         });
     },
+    updateView: function (view, arg) {
+        rpc.request({
+            cmd: 'updateView',
+            view: view,
+            arg: arg,
+        });
+    },
     updateTableView: function () {
         rpc.request({
             cmd: 'updateTableView',
