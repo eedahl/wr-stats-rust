@@ -45,13 +45,13 @@ r#"
         {styles}
     </head>
     <body>
-    <!--[if lt IE 12]>
+    <!--[if lt IE 9]>
     <div class="ie-upgrade-container">
         <p class="ie-upgrade-message">Please, upgrade Internet Explorer to continue using this software.</p>
         <a class="ie-upgrade-link" target="_blank" href="https://www.microsoft.com/en-us/download/internet-explorer.aspx">Upgrade</a>
     </div>
     <![endif]-->
-    <!--[if gte IE 12 | !IE ]> <!-->
+    <!--[if gte IE 9 | !IE ]> <!-->
         <div class="container-fluid" id="view"></div>
         <script charset="utf-8">
             {d3_script}

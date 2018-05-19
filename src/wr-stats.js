@@ -73,7 +73,7 @@ var views = {
             switch (this.activeView) {
                 case 'table':
                     //tableView.update(obj['rows'], obj['footer']);
-                    tableView.update_json(obj['data']);
+                    tableView.update(obj['data']);
                     break;
                 case 'level':
                     levelView.update(obj['data']);
@@ -125,34 +125,20 @@ var tableView = {
                     'param': tableView.param,
                     'ascending': tableView.ascending
                 });
-
             })
         });
     },
-    update: function (rows, footer) {
-        document.getElementById('table-body').innerHTML = rows;
-        document.getElementById('table-footer').innerHTML = footer;
-    },
-    update_json: function (data) {
-        // ! Rows
+    update: function (data) {
         var row_data = data['rows'];
-
         var rows = row_data.map(function (row) {
             return formatRow(row)
         }).reduce(function (acc, next) {
             return acc + next;
         }, "");
-
         document.getElementById('table-body').innerHTML = rows;
-
-        // ! Footer
         var footer = formatFooter(data['footer']);
         document.getElementById('table-footer').innerHTML = footer;
     },
-    /*
-
-        ! Footer:
-    */
 }
 
 var levelView = {
@@ -268,7 +254,6 @@ function formatTimeDiff(time) {
         pos = false;
         time = -time;
     }
-
     var hdrs = parseInt(time % 100);
     var sec = parseInt((time / 100)) % 60;
     var min = parseInt((time / (100 * 60))) % 60;
@@ -281,13 +266,14 @@ function formatTimeDiff(time) {
     str = str + lz(hdrs);
     return str;
 }
-// ! Row
-// ! {"lev_number": lev_number,
-// ! "lev_name": lev_name,
-// ! "pr" : {"time": pr, "class": pr_class},
-// ! "wr_beat": { "time": time_b, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
-// ! "wr_not_beat": { "time": time_nb, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
-// ! "target": {"time": target, "class": target_class}}
+
+// * Row
+// * {"lev_number": lev_number,
+// * "lev_name": lev_name,
+// * "pr" : {"time": pr, "class": pr_class},
+// * "wr_beat": { "time": time_b, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
+// * "wr_not_beat": { "time": time_nb, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
+// * "target": {"time": target, "class": target_class}}
 function formatRow(row) {
     var lev_number = row.lev_number;
     var lev_name = row.lev_name;
@@ -342,8 +328,8 @@ function formatRow(row) {
         "</em></strong>)</span></td> \
     </tr>"
 }
-// ! Footer
-// {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
+
+// * {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
 function formatFooter(footerData) {
     var p_tt = footerData['p_tt'];
     var target_wr_tt = footerData['target_wr_tt'];

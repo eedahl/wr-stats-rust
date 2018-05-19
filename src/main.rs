@@ -94,8 +94,8 @@ fn main() {
             use Cmd::*;
             match serde_json::from_str(arg).unwrap() {
                 displayView { view } => match view.as_ref() {
-                    "table" => display_table_view(webview),
-                    "level" => display_level_view(webview),
+                    "table" => display_view(webview, &html::table_view()),
+                    "level" => display_view(webview, &html::level_view()),
                     v => println!("View in display request not recognised: {}", v),
                 },
                 updateView { view, arg } => match view.as_ref() {
@@ -104,18 +104,16 @@ fn main() {
                             serde_json::from_value(arg["ascending"].clone()).unwrap();
                         let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
                         let sort_by = shared::get_sort_hint(&param, ascending);
-                        let data = shared::build_table_update_data_json(
-                            &wr_tables,
-                            &targets_table,
-                            sort_by,
-                        ).unwrap();
-                        update_view_json(webview, "table", data);
+                        let data =
+                            shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
+                                .unwrap();
+                        update_view(webview, "table", data);
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
                         println!("level: {}", level);
-                        let data = shared::build_level_update_data(&wr_tables, level).unwrap();
-                        update_view_json(webview, "level", data);
+                        let data = shared::get_level_update_data(&wr_tables, level).unwrap();
+                        update_view(webview, "level", data);
                     }
                     v => println!("View in update request not recognised: {}", v),
                 },
@@ -143,29 +141,15 @@ enum Cmd {
     // * Admissible commands go here
 }
 
-fn display_table_view<'a, T>(webview: &mut WebView<'a, T>) {
+fn display_view<'a, T>(webview: &mut WebView<'a, T>, template: &str) {
     webview.eval(&format!(
         "views.display({})",
-        web_view::escape(&json!({ "view": "table", "template": html::table_view()}).to_string())
-    ));
-}
-
-fn display_level_view<'a, T>(webview: &mut WebView<'a, T>) {
-    webview.eval(&format!(
-        "views.display({})",
-        web_view::escape(&json!({ "view": "level", "template": html::level_view(), }).to_string()),
-    ));
-}
-
-fn update_table_view<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
-    webview.eval(&format!(
-        "views.updateView({})",
-        web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),
+        web_view::escape(&json!({ "view": "level", "template": template, }).to_string()),
     ));
 }
 
 #[allow(dead_code)]
-fn update_view_json<'a, T>(webview: &mut WebView<'a, T>, view: &str, data: serde_json::Value) {
+fn update_view<'a, T>(webview: &mut WebView<'a, T>, view: &str, data: serde_json::Value) {
     webview.eval(&format!(
         "views.updateView({})",
         web_view::escape(&json!({ "view": view, "data": data}).to_string()),

@@ -84,7 +84,7 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     }
 }
 
-pub fn build_level_update_data(wr_tables: &[WR], level: i32) -> Result<serde_json::Value, Error> {
+pub fn get_level_update_data(wr_tables: &[WR], level: i32) -> Result<serde_json::Value, Error> {
     Ok(json!({"level": level, "times": serde_json::to_value(
         wr_tables
             .into_iter()
@@ -178,8 +178,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
         .collect()
 }
 
-// ! Live code above, do not edit
-pub fn build_table_update_data_json(
+pub fn build_table_update_data(
     wr_tables: &[WR],
     targets_table: &[Targets],
     sort_by: SortBy,
