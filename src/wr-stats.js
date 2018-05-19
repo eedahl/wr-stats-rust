@@ -20,6 +20,7 @@ var rpc = {
             view: view,
         });
     },
+    // TODO(edahl): make no argument update function
     updateView: function (view, arg) {
         rpc.request({
             cmd: 'updateView',
@@ -52,14 +53,21 @@ var views = {
         switch (this.activeView) {
             case 'table':
                 tableView.init();
+                rpc.updateView('table', {
+                    'param': tableView.param,
+                    'ascending': tableView.ascending
+                });
                 break;
             case 'level':
                 levelView.init();
+                rpc.updateView('level', {
+                    'level': levelView.level
+                });
                 break;
         }
 
     },
-    update: function (arg) {
+    updateView: function (arg) {
         var obj = JSON.parse(arg);
         if (this.activeView == obj['view']) {
             switch (this.activeView) {
@@ -78,7 +86,6 @@ var tableView = {
     param: "LevelNum",
     ascending: true,
     init: function () {
-        //for (var key in colSortHint) {
         var colSortHint = [{
                 'id': 'lev',
                 'hint': 'LevelNum'
@@ -112,21 +119,22 @@ var tableView = {
             document.getElementById(val.id).addEventListener("click", function () {
                 rpc.log('sorting', val);
                 tableView.param = val.hint;
+                tableView.ascending = !tableView.ascending;
                 rpc.updateView('table', {
                     'param': tableView.param,
                     'ascending': tableView.ascending
                 });
+
             })
-        });
-        rpc.updateView('table', {
-            'param': this.param,
-            'ascending': this.ascending
         });
     },
     update: function (rows, footer) {
         document.getElementById('table-body').innerHTML = rows;
         document.getElementById('table-footer').innerHTML = footer;
-        this.ascending = !this.ascending;
+    },
+    update_json: function () {
+        //document.getElementById('table-body').innerHTML = rows;
+        //document.getElementById('table-footer').innerHTML = footer;
     },
 }
 
@@ -139,9 +147,6 @@ var levelView = {
         //this.chart = 
         //c3.generate
         //rpc.log("CHART", this.chart)
-        rpc.updateView('level', {
-            'level': this.level
-        });
     },
     update: function (level, times) {
         this.level = level;

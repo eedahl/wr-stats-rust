@@ -107,9 +107,9 @@ fn main() {
                         //let data = shared::build_table_update_data_json(
                         //    &wr_tables,
                         //    &targets_table,
-                        //    sort_hint,
+                        //    sort_by,
                         //).unwrap();
-                        //update_view_json(webview, "table", data)
+                        //update_view_json(webview, "table", data);
                         let (ref rows, ref footer) =
                             shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
                                 .unwrap_or_else(|err| {
@@ -165,22 +165,15 @@ fn display_level_view<'a, T>(webview: &mut WebView<'a, T>) {
 
 fn update_table_view<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
     webview.eval(&format!(
-        "views.update({})",
+        "views.updateView({})",
         web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),
-    ));
-}
-
-fn update_level_view<'a, T>(webview: &mut WebView<'a, T>, data: serde_json::Value) {
-    webview.eval(&format!(
-        "views.update({})",
-        web_view::escape(&json!({ "view": "level", "data": data}).to_string()),
     ));
 }
 
 #[allow(dead_code)]
 fn update_view_json<'a, T>(webview: &mut WebView<'a, T>, view: &str, data: serde_json::Value) {
     webview.eval(&format!(
-        "views.update({})",
+        "views.updateView({})",
         web_view::escape(&json!({ "view": view, "data": data}).to_string()),
     ));
 }

@@ -107,7 +107,6 @@ pub fn level_view() -> String {
         r#"
 <p>Level view</p>
 <p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
-<p onclick="rpc.updateLevelView();">Update level view</p>
 <div id="chart" class="container-fluid"></div>
 "#)
 }

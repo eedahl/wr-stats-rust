@@ -32,6 +32,7 @@ pub struct DataRow {
     pub wr_not_beat: Option<WR>,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum SortBy {
     PR(SortOrder),
     DiffToPrevWR(SortOrder),
@@ -41,6 +42,7 @@ pub enum SortBy {
     Table(SortOrder),
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum SortOrder {
     Ascending,
     Descending,
