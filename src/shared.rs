@@ -433,6 +433,7 @@ pub fn build_table_update_data_json(
     let (unpack, wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) = collate.into_iter().unzip();
     let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
 
+    // stryke denne og la js ta seg av det
     let table_rows = html::create_table_rows(&data_sorted, &targets_sorted, &wrs_sorted);
 
     Ok((table_rows, table_footer))
