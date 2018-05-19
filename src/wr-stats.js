@@ -73,7 +73,7 @@ var views = {
                     tableView.update(obj['rows'], obj['footer']);
                     break;
                 case 'level':
-                    levelView.update(obj['level'], obj['times']);
+                    levelView.update(obj['data']['level'], obj['data']['times']);
                     break;
             }
         }

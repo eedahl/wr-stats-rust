@@ -83,13 +83,13 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
 }
 
 pub fn build_level_update_data(wr_tables: &[WR], level: i32) -> Result<serde_json::Value, Error> {
-    Ok(serde_json::to_value(
+    Ok(json!({"level": level, "times": serde_json::to_value(
         wr_tables
             .into_iter()
             .filter(|x| (*x).lev == level)
             .map(|x| x.time.0)
             .collect::<Vec<_>>(),
-    )?)
+    )?}))
 }
 
 pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {
