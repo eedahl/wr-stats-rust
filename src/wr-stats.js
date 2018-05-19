@@ -220,6 +220,31 @@ var levelView = {
                 rescale: true
             }
         });
-
     }
+}
+
+function format_time(time) {
+    var hdrs = parseInt(time % 100);
+    var sec = parseInt((time / 100)) % 60;
+    var min = parseInt((time / (100 * 60))) % 60;
+    var hrs = parseInt(time / (100 * 60 * 60));
+    var lz = d3.format("02d");
+    var str = (time < 0) ? '-' : '';
+    str = str + ((hrs > 0) ? (lz(hrs) + ':') : '');
+    str = str + lz(min) + ':' + lz(sec) + ',' + lz(hdrs);
+    return str;
+}
+
+function format_time_diff(time) {
+    var hdrs = parseInt(time % 100);
+    var sec = parseInt((time / 100)) % 60;
+    var min = parseInt((time / (100 * 60))) % 60;
+    var hrs = parseInt(time / (100 * 60 * 60));
+    var lz = d3.format("02d");
+    var str = (time < 0) ? '-' : '+';
+    str = str + ((hrs > 0) ? (hrs + ':') : '');
+    str = str + ((hrs > 0) ? ((min > 0) ? lz(min) : '') : (min > 0) ? (min + ':') : '');
+    str = str + ((min > 0) ? lz(sec) : sec) + ',';
+    str = str + lz(hdrs);
+    return str;
 }

@@ -436,8 +436,12 @@ pub fn build_table_update_data_json(
             )| {
                 let pr_class = get_time_class_json(pr, &targets_sorted[i], &current_wrs_sorted[i]);
                 let target = get_next_target(pr, &targets_sorted[i], &current_wrs_sorted[i]);
-                let target_class =
-                    get_time_class_json(&target, &targets_sorted[i], &current_wrs_sorted[i]);
+
+                let target_class = if target != Time(0) {
+                    get_time_class_json(&target, &targets_sorted[i], &current_wrs_sorted[i])
+                } else {
+                    "".to_owned()
+                };
                 let (table_b, _, time_b, kuski_b) = wr_to_values(wr_beat);
                 let wr_b_class = get_time_class_json(
                     &get_next_target(&time_b, &targets_sorted[i], &current_wrs_sorted[i]),
@@ -462,8 +466,6 @@ pub fn build_table_update_data_json(
         .into();
 
     let json_data: serde_json::Value = json!({"rows": json_row_data, "footer": footer_json});
-
-    println!("{}", json_data.to_string());
 
     Ok(json_data)
 }
