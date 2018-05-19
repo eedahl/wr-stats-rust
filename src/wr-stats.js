@@ -27,19 +27,6 @@ var rpc = {
             arg: arg,
         });
     },
-    updateTableView: function () {
-        rpc.request({
-            cmd: 'updateTableView',
-            param: tableView.param,
-            ascending: tableView.ascending
-        });
-    },
-    updateLevelView: function () {
-        rpc.request({
-            cmd: 'updateLevelView',
-            level: levelView.level
-        });
-    },
     log: function () {
         var s = '';
         for (var i = 0; i < arguments.length; i++) {
@@ -121,16 +108,20 @@ var tableView = {
                 'hint': 'DiffToNextTarget'
             },
         ];
-
         colSortHint.map(function (val) {
             document.getElementById(val.id).addEventListener("click", function () {
                 rpc.log('sorting', val);
                 tableView.param = val.hint;
-                rpc.updateTableView();
+                rpc.updateView('table', {
+                    'param': tableView.param,
+                    'ascending': tableView.ascending
+                });
             })
         });
-
-        rpc.updateTableView();
+        rpc.updateView('table', {
+            'param': this.param,
+            'ascending': this.ascending
+        });
     },
     update: function (rows, footer) {
         document.getElementById('table-body').innerHTML = rows;
@@ -148,8 +139,9 @@ var levelView = {
         //this.chart = 
         //c3.generate
         //rpc.log("CHART", this.chart)
-
-        rpc.updateLevelView();
+        rpc.updateView('level', {
+            'level': this.level
+        });
     },
     update: function (level, times) {
         this.level = level;
@@ -188,7 +180,6 @@ var levelView = {
                     }
                 }
             },
-
             point: {
                 show: false
             },

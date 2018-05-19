@@ -100,42 +100,31 @@ fn main() {
                 },
                 updateView { view, arg } => match view.as_ref() {
                     "table" => {
-                        #[derive(Deserialize)]
-                        struct ViewArgs(String, bool);
-                        let ViewArgs(param, ascending) = serde_json::from_value(arg).unwrap();
-                        let sort_hint = shared::get_sort_hint(&param, ascending);
-                        let data = shared::build_table_update_data_json(
-                            &wr_tables,
-                            &targets_table,
-                            sort_hint,
-                        ).unwrap();
-                        update_view_json(webview, "table", data)
+                        let ascending: bool =
+                            serde_json::from_value(arg["ascending"].clone()).unwrap();
+                        let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
+                        let sort_by = shared::get_sort_hint(&param, ascending);
+                        //let data = shared::build_table_update_data_json(
+                        //    &wr_tables,
+                        //    &targets_table,
+                        //    sort_hint,
+                        //).unwrap();
+                        //update_view_json(webview, "table", data)
+                        let (ref rows, ref footer) =
+                            shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
+                                .unwrap_or_else(|err| {
+                                    (html::default_error_message(err), String::new())
+                                });
+                        update_table_view(webview, &rows, &footer)
                     }
                     "level" => {
-                        #[derive(Deserialize)]
-                        struct ViewArgs(i32);
-                        let ViewArgs(level) = serde_json::from_value(arg).unwrap();
+                        let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
+                        println!("level: {}", level);
                         let data = shared::build_level_update_data(&wr_tables, level).unwrap();
-                        update_level_view(webview, data)
+                        update_view_json(webview, "level", data);
                     }
                     v => println!("View in update request not recognised: {}", v),
                 },
-                updateTableView { param, ascending } => {
-                    //a = hent data
-                    //b = prosesser a
-                    //send json b
-                    let sort_by = shared::get_sort_hint(&param, ascending);
-                    let (ref rows, ref footer) =
-                        shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
-                            .unwrap_or_else(|err| {
-                                (html::default_error_message(err), String::new())
-                            });
-                    update_table_view(webview, &rows, &footer)
-                }
-                updateLevelView { level } => {
-                    let data = shared::build_level_update_data(&wr_tables, level).unwrap();
-                    update_level_view(webview, data)
-                }
                 log { text } => println!("{}", text),
             }
         },
@@ -153,13 +142,6 @@ enum Cmd {
     updateView {
         view: String,
         arg: serde_json::Value,
-    },
-    updateTableView {
-        param: String,
-        ascending: bool,
-    },
-    updateLevelView {
-        level: i32,
     },
     log {
         text: String,
