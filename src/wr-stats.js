@@ -137,21 +137,12 @@ var tableView = {
         // ! Rows
         var row_data = data['rows'];
 
-        /*        var rows = row_data.map(function (row) {
-                    return formatRow(row)
-                }).reduce(function (acc, next) {
-                    acc + next;
-                }, "");
-        */
         var rows = row_data.map(function (row) {
             return formatRow(row)
         }).reduce(function (acc, next) {
             return acc + next;
         }, "");
 
-        rpc.log(rows);
-
-        rpc.log(rows);
         document.getElementById('table-body').innerHTML = rows;
 
         // ! Footer
@@ -298,7 +289,6 @@ function formatTimeDiff(time) {
 // ! "wr_not_beat": { "time": time_nb, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
 // ! "target": {"time": target, "class": target_class}}
 function formatRow(row) {
-    rpc.log(row);
     var lev_number = row.lev_number;
     var lev_name = row.lev_name;
     var pr = row['pr'];

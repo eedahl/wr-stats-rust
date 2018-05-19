@@ -445,17 +445,11 @@ pub fn build_table_update_data_json(
                     "".to_owned()
                 };
                 let (table_b, _, time_b, kuski_b) = wr_to_values(wr_beat);
-                let wr_b_class = get_time_class_json(
-                    &get_next_target(&time_b, &targets_sorted[i], &current_wrs_sorted[i]),
-                    &targets_sorted[i],
-                    &current_wrs_sorted[i],
-                );
+                let wr_b_class =
+                    get_time_class_json(&time_b, &targets_sorted[i], &current_wrs_sorted[i]);
                 let (table_nb, _, time_nb, kuski_nb) = wr_to_values(wr_not_beat);
-                let wr_nb_class = get_time_class_json(
-                    &get_next_target(&time_nb, &targets_sorted[i], &current_wrs_sorted[i]),
-                    &targets_sorted[i],
-                    &current_wrs_sorted[i],
-                );
+                let wr_nb_class =
+                    get_time_class_json(&time_nb, &targets_sorted[i], &current_wrs_sorted[i]);
                 json!({"lev_number": lev_number,
                         "lev_name": lev_name,
                         "pr" : {"time": pr.0, "class": pr_class},
