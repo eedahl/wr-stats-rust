@@ -130,7 +130,130 @@ pub fn build_table_update_data(
     let table_footer = html::format_table_footer(&p_tt, &target_wr_tt, &target_tt);
 
     // * Body
-    let mut collate = data.into_iter()
+    let mut collate = data
+        .into_iter()
+        .zip(targets_table.into_iter().cloned())
+        .zip(current_wrs.into_iter())
+        .collect::<Vec<((DataRow, Targets), Time)>>();
+
+    match sort_by {
+        SortBy::Table(ord) => collate.sort_by(|x, y| {
+            let table1 = if let Some(ref wr) = ((x.0).0).wr_beat {
+                wr.table
+            } else {
+                0
+            };
+            let table2 = if let Some(ref wr) = ((y.0).0).wr_beat {
+                wr.table
+            } else {
+                0
+            };
+            match ord {
+                SortOrder::Ascending => table1.cmp(&table2),
+                SortOrder::Descending => table2.cmp(&table1),
+            }
+        }),
+        SortBy::PR(ord) => collate.sort_by(|x, y| {
+            let pr1 = ((x.0).0).pr;
+            let pr2 = ((y.0).0).pr;
+            match ord {
+                SortOrder::Ascending => pr1.cmp(&pr2),
+                SortOrder::Descending => pr2.cmp(&pr1),
+            }
+        }),
+        SortBy::DiffToNextTarget(ord) => collate.sort_by(|x, y| {
+            let pr1 = ((x.0).0).pr;
+            let tars1 = &(x.0).1;
+            let cur_wr1 = x.1;
+            let tar1 = get_next_target(&pr1, tars1, &cur_wr1);
+            let pr2 = ((y.0).0).pr;
+            let tars2 = &(y.0).1;
+            let cur_wr2 = y.1;
+            let tar2 = get_next_target(&pr2, tars2, &cur_wr2);
+            match ord {
+                SortOrder::Ascending => (pr1 - tar1).cmp(&(pr2 - tar2)),
+                SortOrder::Descending => (pr2 - tar2).cmp(&(pr1 - tar1)),
+            }
+        }),
+        SortBy::DiffToPrevWR(ord) => collate.sort_by(|x, y| {
+            let pr1 = ((x.0).0).pr;
+            let wr1 = if let Some(ref wr) = ((x.0).0).wr_beat {
+                wr.time
+            } else {
+                pr1
+            };
+            let pr2 = ((y.0).0).pr;
+            let wr2 = if let Some(ref wr) = ((y.0).0).wr_beat {
+                wr.time
+            } else {
+                pr2
+            };
+            match ord {
+                SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
+                SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
+            }
+        }),
+        SortBy::DiffToNextWR(ord) => collate.sort_by(|x, y| {
+            let pr1 = ((x.0).0).pr;
+            let wr1 = if let Some(ref wr) = ((x.0).0).wr_not_beat {
+                wr.time
+            } else {
+                pr1
+            };
+            let pr2 = ((y.0).0).pr;
+            let wr2 = if let Some(ref wr) = ((y.0).0).wr_not_beat {
+                wr.time
+            } else {
+                pr2
+            };
+            match ord {
+                SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
+                SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
+            }
+        }),
+        SortBy::LevelNum(ord) => match ord {
+            SortOrder::Ascending => {}
+            SortOrder::Descending => collate.sort_by(|x, y| {
+                let lev_num1 = ((x.0).0).lev_number;
+                let lev_num2 = ((y.0).0).lev_number;
+                lev_num2.cmp(&lev_num1)
+            }),
+        },
+    }
+    let (unpack, wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) = collate.into_iter().unzip();
+    let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
+
+    let table_rows = html::create_table_rows(&data_sorted, &targets_sorted, &wrs_sorted);
+
+    Ok((table_rows, table_footer))
+}
+
+pub fn build_table_update_data_json(
+    wr_tables: &[WR],
+    targets_table: &[Targets],
+    sort_by: SortBy,
+) -> Result<(String, String), Error> {
+    let pr_table = match io::load_state() {
+        Ok(t) => t,
+        Err(_) => io::load_stats()?,
+    };
+
+    let data = io::populate_table_data(&pr_table, &wr_tables);
+    let last_wr_table = collect_last_wr_table(&wr_tables);
+    let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
+
+    // * Footer
+    let (p_tt, target_wr_tt) = compute_tts(&data);
+    let mut target_tt = Time(0);
+    for (i, pr) in pr_table.iter().enumerate() {
+        target_tt = target_tt + get_next_target(&pr, &targets_table[i], &current_wrs[i]);
+    }
+
+    let table_footer = html::format_table_footer(&p_tt, &target_wr_tt, &target_tt);
+
+    // * Body
+    let mut collate = data
+        .into_iter()
         .zip(targets_table.into_iter().cloned())
         .zip(current_wrs.into_iter())
         .collect::<Vec<((DataRow, Targets), Time)>>();

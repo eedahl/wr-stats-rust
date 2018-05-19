@@ -57,7 +57,9 @@ r#"
     <![endif]-->
     <!--[if gte IE 9 | !IE ]> <!-->
         <div class="container-fluid" id="view"></div>
-        <script charset="utf-8">{d3_script}</script>
+        <script charset="utf-8">
+            {d3_script}
+        </script>
         {c3_script}
         {script}
     <![endif]-->
