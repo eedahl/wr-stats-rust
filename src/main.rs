@@ -60,10 +60,6 @@ fn main() {
     };
 
     let html = html::index();
-    /* match html::build_initial_html(&wr_tables, &targets_table) {
-        Ok(h) => h,
-        Err(e) => html::default_error_message(e),
-    };*/
 
     let size = (1000, 1000);
     let resizable = true;
@@ -106,6 +102,9 @@ fn main() {
                     v => println!("View request not recognised: {}", v),
                 },
                 updateTableView { param, ascending } => {
+                    //a = hent data
+                    //b = prosesser a
+                    //send json b
                     let sort_by = shared::get_sort_hint(&param, ascending);
                     let (ref rows, ref footer) =
                         shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
@@ -152,6 +151,13 @@ fn display_level_view<'a, T>(webview: &mut WebView<'a, T>) {
 }
 
 fn update_table_view<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
+    webview.eval(&format!(
+        "views.update({})",
+        web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),
+    ));
+}
+
+fn update_table_view_json<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
     webview.eval(&format!(
         "views.update({})",
         web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),

@@ -3,7 +3,7 @@ extern crate elma;
 
 use elma::Time;
 use failure::Error;
-use shared::{DataRow, Targets, WR};
+use shared::{Targets, WR}; //DataRow
 
 pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
     Ok(csv::Reader::from_path("wr-stats_targets.csv")?
