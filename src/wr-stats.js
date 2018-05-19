@@ -20,17 +20,11 @@ var rpc = {
             view: view,
         });
     },
-    updateTableView: function () {
+    updateView: function (view, arg) {
         rpc.request({
-            cmd: 'updateTableView',
-            param: tableView.param,
-            ascending: tableView.ascending
-        });
-    },
-    updateLevelView: function () {
-        rpc.request({
-            cmd: 'updateLevelView',
-            level: levelView.level
+            cmd: 'updateView',
+            view: view,
+            arg: arg,
         });
     },
     log: function () {
@@ -58,22 +52,29 @@ var views = {
         switch (this.activeView) {
             case 'table':
                 tableView.init();
+                rpc.updateView('table', {
+                    'param': tableView.param,
+                    'ascending': tableView.ascending
+                });
                 break;
             case 'level':
                 levelView.init();
+                rpc.updateView('level', {
+                    'level': levelView.level
+                });
                 break;
         }
-
     },
-    update: function (arg) {
+    // TODO(edahl): make no argument update function
+    updateView: function (arg) {
         var obj = JSON.parse(arg);
         if (this.activeView == obj['view']) {
             switch (this.activeView) {
                 case 'table':
-                    tableView.update(obj['rows'], obj['footer']);
+                    tableView.update(obj['data']);
                     break;
                 case 'level':
-                    levelView.update(obj['level'], obj['times']);
+                    levelView.update(obj['data']);
                     break;
             }
         }
@@ -84,7 +85,6 @@ var tableView = {
     param: "LevelNum",
     ascending: true,
     init: function () {
-        //for (var key in colSortHint) {
         var colSortHint = [{
                 'id': 'lev',
                 'hint': 'LevelNum'
@@ -114,21 +114,28 @@ var tableView = {
                 'hint': 'DiffToNextTarget'
             },
         ];
-
         colSortHint.map(function (val) {
             document.getElementById(val.id).addEventListener("click", function () {
                 rpc.log('sorting', val);
                 tableView.param = val.hint;
-                rpc.updateTableView();
+                tableView.ascending = !tableView.ascending;
+                rpc.updateView('table', {
+                    'param': tableView.param,
+                    'ascending': tableView.ascending
+                });
             })
         });
-
-        rpc.updateTableView();
     },
-    update: function (rows, footer) {
+    update: function (data) {
+        var row_data = data['rows'];
+        var rows = row_data.map(function (row) {
+            return formatRow(row)
+        }).reduce(function (acc, next) {
+            return acc + next;
+        }, "");
         document.getElementById('table-body').innerHTML = rows;
+        var footer = formatFooter(data['footer']);
         document.getElementById('table-footer').innerHTML = footer;
-        this.ascending = !this.ascending;
     },
 }
 
@@ -141,10 +148,10 @@ var levelView = {
         //this.chart = 
         //c3.generate
         //rpc.log("CHART", this.chart)
-
-        rpc.updateLevelView();
     },
-    update: function (level, times) {
+    update: function (data) {
+        var level = data['level'];
+        var times = data['times'];
         this.level = level;
         //chart.load
         //targets horizontal bars/colouring
@@ -181,7 +188,6 @@ var levelView = {
                     }
                 }
             },
-
             point: {
                 show: false
             },
@@ -220,6 +226,130 @@ var levelView = {
                 rescale: true
             }
         });
-
     }
+}
+
+function formatTime(time) {
+    var pos = true;
+    if (time < 0) {
+        pos = false;
+        time = -time;
+    }
+    var hdrs = parseInt(time % 100);
+    var sec = parseInt((time / 100)) % 60;
+    var min = parseInt((time / (100 * 60))) % 60;
+    var hrs = parseInt(time / (100 * 60 * 60));
+    var lz = d3.format("02d");
+    var str = (pos) ? '' : '-';
+    str = str + ((hrs > 0) ? (lz(hrs) + ':') : '');
+    str = str + lz(min) + ':' + lz(sec) + ',' + lz(hdrs);
+    return str;
+}
+
+function formatTimeDiff(time) {
+    var pos = true;
+    if (time < 0) {
+        pos = false;
+        time = -time;
+    }
+    var hdrs = parseInt(time % 100);
+    var sec = parseInt((time / 100)) % 60;
+    var min = parseInt((time / (100 * 60))) % 60;
+    var hrs = parseInt(time / (100 * 60 * 60));
+    var lz = d3.format("02d");
+    var str = (pos) ? '+' : '-';
+    str = str + ((hrs > 0) ? (hrs + ':') : '');
+    str = str + ((hrs > 0) ? ((min > 0) ? lz(min) : '') : (min > 0) ? (min + ':') : '');
+    str = str + ((min > 0) ? lz(sec) : sec) + ',';
+    str = str + lz(hdrs);
+    return str;
+}
+
+// * Row
+// * {"lev_number": lev_number,
+// * "lev_name": lev_name,
+// * "pr" : {"time": pr, "class": pr_class},
+// * "wr_beat": { "time": time_b, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
+// * "wr_not_beat": { "time": time_nb, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
+// * "target": {"time": target, "class": target_class}}
+function formatRow(row) {
+    var lev_number = row.lev_number;
+    var lev_name = row.lev_name;
+    var pr = row['pr'];
+    var wr_beat = row['wr_beat'];
+    var wr_beat_time = wr_beat.time != 0 ? wr_beat.time : "-";
+    var wr_beat_class = wr_beat.time != 0 ? wr_beat.class : "-";
+    var wr_beat_kuski = wr_beat.time != 0 ? wr_beat.kuski : "-";
+    var wr_beat_table = wr_beat.time != 0 ? wr_beat.table : "-";
+    var wr_not_beat = row['wr_not_beat'];
+    var wr_not_beat_time = wr_not_beat.time != 0 ? wr_not_beat.time : "-";
+    var wr_not_beat_class = wr_not_beat.time != 0 ? wr_not_beat.class : "-";
+    var wr_not_beat_kuski = wr_not_beat.time != 0 ? wr_not_beat.kuski : "-";
+    var wr_not_beat_table = wr_not_beat.time != 0 ? wr_not_beat.table : "-";
+    var target = row['target'];
+    return " \
+    <tr> \
+        <td>" + // * level
+        lev_number + ". " + lev_name +
+        "</td> \
+        <td class=\"" +
+        pr.class + "\">" + // * pr
+        (isNaN(pr.time) ? "-" : formatTime(pr.time)) +
+        "</td> \
+        <td class=\"" +
+        wr_beat_class + "\">" + // * wr beat
+        (isNaN(wr_beat_time) ? "-" : formatTime(wr_beat_time)) +
+        " <span class=\"diff\">(<em><strong>" +
+        (isNaN(pr.time - wr_beat_time) ? "-" : formatTimeDiff(pr.time - wr_beat_time)) +
+        "</em></strong>)</span></td> \
+        <td>" + // * kuski beat
+        wr_beat_kuski +
+        " (<em><strong>" +
+        wr_beat_table +
+        "</em></strong>)</td> \
+        <td class=\"" +
+        wr_not_beat_class + "\">" + // ! target wr
+        (isNaN(wr_not_beat_time) ? wr_not_beat_time : formatTime(wr_not_beat_time)) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr.time - wr_not_beat_time) +
+        "</em></strong>)</span></td> \
+        <td>" + // ! target kuski
+        wr_not_beat_kuski +
+        " (<em><strong>" +
+        wr_not_beat_table +
+        "</em></strong>)</td> \
+        <td class=\"" +
+        target.class + "\">" + // ! target
+        formatTime(target.time) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr.time - target.time) +
+        "</em></strong>)</span></td> \
+    </tr>"
+}
+
+// * {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
+function formatFooter(footerData) {
+    var p_tt = footerData['p_tt'];
+    var target_wr_tt = footerData['target_wr_tt'];
+    var target_tt = footerData['target_tt'];
+    return " \
+    <tr> \
+        <td><\/td> \
+        <td id=\"p_tt\" class=\"tt\">" +
+        formatTime(p_tt) +
+        "<\/td><td><\/td><td><\/td>" +
+        "<td id=\"target_wr_tt\" class=\"tt\">" +
+        formatTime(target_wr_tt) +
+        " (<em><strong>" +
+        formatTimeDiff(p_tt - target_wr_tt) +
+        "<\/em><\/strong>)" +
+        "<\/td> \
+        <td><\/td> \
+        <td>" +
+        formatTime(target_tt) +
+        " (<em><strong>" +
+        formatTimeDiff(p_tt - target_tt) +
+        "</em></strong>) \
+        <\/td> \
+    <\/tr>"
 }
