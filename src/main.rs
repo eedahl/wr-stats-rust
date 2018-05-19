@@ -103,6 +103,8 @@ fn main() {
                     //b = prosesser a
                     //send json b
                     let sort_by = shared::get_sort_hint(&param, ascending);
+                    let sort_by_json = shared::get_sort_hint(&param, ascending);
+                    shared::build_table_update_data_json(&wr_tables, &targets_table, sort_by_json);
                     let (ref rows, ref footer) =
                         shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
                             .unwrap_or_else(|err| {

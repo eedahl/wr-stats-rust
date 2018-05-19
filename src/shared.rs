@@ -46,20 +46,6 @@ pub enum SortOrder {
     Descending,
 }
 
-pub fn get_next_target(t: &Time, tar: &Targets, cur_wr: &Time) -> Time {
-    match *t {
-        t if t > tar.beginner => tar.beginner,
-        t if t > tar.ok => tar.ok,
-        t if t > tar.good => tar.good,
-        t if t > tar.professional => tar.professional,
-        t if t > tar.world_class => tar.world_class,
-        t if t > tar.legendary => tar.legendary,
-        t if t > tar.godlike => tar.godlike,
-        t if t > *cur_wr => *cur_wr,
-        _ => *cur_wr,
-    }
-}
-
 pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     match sort_param {
         "PR" => SortBy::PR(if ascending {
@@ -312,13 +298,14 @@ pub fn build_table_update_data(
 
     Ok((table_rows, table_footer))
 }
+// ! Live code above, do not edit
 
 #[allow(dead_code)]
 pub fn build_table_update_data_json(
     wr_tables: &[WR],
     targets_table: &[Targets],
     sort_by: SortBy,
-) -> Result<(String, String), Error> {
+) -> Result<serde_json::Value, Error> {
     let pr_table = match io::load_state() {
         Ok(t) => t,
         Err(_) => io::load_stats()?,
@@ -336,8 +323,6 @@ pub fn build_table_update_data_json(
 
     let footer_json =
         json!({"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0});
-
-    let table_footer = html::format_table_footer(&p_tt, &target_wr_tt, &target_tt);
 
     // * Body
     let mut collate = data
@@ -430,13 +415,71 @@ pub fn build_table_update_data_json(
             }),
         },
     }
-    let (unpack, wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) = collate.into_iter().unzip();
+    let (unpack, current_wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) =
+        collate.into_iter().unzip();
     let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
 
-    // stryke denne og la js ta seg av det
-    let table_rows = html::create_table_rows(&data_sorted, &targets_sorted, &wrs_sorted);
+    // ! Goal
+    let json_row_data: serde_json::Value = data_sorted
+        .iter()
+        .enumerate()
+        .map(
+            |(
+                i,
+                DataRow {
+                    lev_number,
+                    lev_name,
+                    pr,
+                    wr_beat,
+                    wr_not_beat,
+                },
+            )| {
+                let pr_class = get_time_class_json(pr, &targets_sorted[i], &current_wrs_sorted[i]);
+                let target = get_next_target(pr, &targets_sorted[i], &current_wrs_sorted[i]);
+                let target_class =
+                    get_time_class_json(&target, &targets_sorted[i], &current_wrs_sorted[i]);
+                let (table_b, _, time_b, kuski_b) = wr_to_values(wr_beat);
+                let wr_b_class = get_time_class_json(
+                    &get_next_target(&time_b, &targets_sorted[i], &current_wrs_sorted[i]),
+                    &targets_sorted[i],
+                    &current_wrs_sorted[i],
+                );
+                let (table_nb, _, time_nb, kuski_nb) = wr_to_values(wr_not_beat);
+                let wr_nb_class = get_time_class_json(
+                    &get_next_target(&time_nb, &targets_sorted[i], &current_wrs_sorted[i]),
+                    &targets_sorted[i],
+                    &current_wrs_sorted[i],
+                );
+                json!({"lev_number": lev_number,
+                        "lev_name": lev_name,
+                        "pr" : {"time": pr.0, "class": pr_class},
+                        "wr_beat": { "time": time_b.0, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
+                        "wr_not_beat": { "time": time_nb.0, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
+                        "target": {"time": target.0, "class": target_class}})
+            },
+        )
+        .collect::<Vec<_>>()
+        .into();
 
-    Ok((table_rows, table_footer))
+    let json_data: serde_json::Value = json!({"rows": json_row_data, "footer": footer_json});
+
+    println!("{}", json_data.to_string());
+
+    Ok(json_data)
+}
+
+pub fn wr_to_values(wr: &Option<WR>) -> (i32, i32, Time, String) {
+    if let Some(WR {
+        table,
+        lev,
+        time,
+        ref kuski,
+    }) = *wr
+    {
+        (table, lev, time, kuski.to_string())
+    } else {
+        (0, 0, Time(0), "".to_owned())
+    }
 }
 
 fn compute_tts(drs: &[DataRow]) -> (Time, Time) {
@@ -468,128 +511,31 @@ fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
         .collect()
 }
 
-/*
-pub fn build_table_update_data_json(
-    wr_tables: &[WR],
-    targets_table: &[Targets],
-    sort_by: SortBy,
-) -> Result<serde_json::Value, Error> {
-    let pr_table = match io::load_state() {
-        Ok(t) => t,
-        Err(_) => io::load_stats()?,
-    };
-
-    let data = io::populate_table_data(&pr_table, &wr_tables);
-    let last_wr_table = collect_last_wr_table(&wr_tables);
-    let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
-
-    // * Footer
-    let (p_tt, target_wr_tt) = compute_tts(&data);
-    let mut target_tt = Time(0);
-    for (i, pr) in pr_table.iter().enumerate() {
-        target_tt = target_tt + get_next_target(&pr, &targets_table[i], &current_wrs[i]);
-    }
-
-// ! make decisions on "server side" vs "js side" computations
-    json!({"p_tt": p_tt, "target_wr_tt": target_tt, ""})
-
-    let table_footer = html::format_table_footer(&p_tt, &target_wr_tt, &target_tt);
-
-    // * Body
-    let mut collate = data.into_iter()
-        .zip(targets_table.into_iter().cloned())
-        .zip(current_wrs.into_iter())
-        .collect::<Vec<((DataRow, Targets), Time)>>();
-
-    match sort_by {
-        SortBy::Table(ord) => collate.sort_by(|x, y| {
-            let table1 = if let Some(ref wr) = ((x.0).0).wr_beat {
-                wr.table
-            } else {
-                0
-            };
-            let table2 = if let Some(ref wr) = ((y.0).0).wr_beat {
-                wr.table
-            } else {
-                0
-            };
-            match ord {
-                SortOrder::Ascending => table1.cmp(&table2),
-                SortOrder::Descending => table2.cmp(&table1),
-            }
-        }),
-        SortBy::PR(ord) => collate.sort_by(|x, y| {
-            let pr1 = ((x.0).0).pr;
-            let pr2 = ((y.0).0).pr;
-            match ord {
-                SortOrder::Ascending => pr1.cmp(&pr2),
-                SortOrder::Descending => pr2.cmp(&pr1),
-            }
-        }),
-        SortBy::DiffToNextTarget(ord) => collate.sort_by(|x, y| {
-            let pr1 = ((x.0).0).pr;
-            let tars1 = &(x.0).1;
-            let cur_wr1 = x.1;
-            let tar1 = get_next_target(&pr1, tars1, &cur_wr1);
-            let pr2 = ((y.0).0).pr;
-            let tars2 = &(y.0).1;
-            let cur_wr2 = y.1;
-            let tar2 = get_next_target(&pr2, tars2, &cur_wr2);
-            match ord {
-                SortOrder::Ascending => (pr1 - tar1).cmp(&(pr2 - tar2)),
-                SortOrder::Descending => (pr2 - tar2).cmp(&(pr1 - tar1)),
-            }
-        }),
-        SortBy::DiffToPrevWR(ord) => collate.sort_by(|x, y| {
-            let pr1 = ((x.0).0).pr;
-            let wr1 = if let Some(ref wr) = ((x.0).0).wr_beat {
-                wr.time
-            } else {
-                pr1
-            };
-            let pr2 = ((y.0).0).pr;
-            let wr2 = if let Some(ref wr) = ((y.0).0).wr_beat {
-                wr.time
-            } else {
-                pr2
-            };
-            match ord {
-                SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
-                SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
-            }
-        }),
-        SortBy::DiffToNextWR(ord) => collate.sort_by(|x, y| {
-            let pr1 = ((x.0).0).pr;
-            let wr1 = if let Some(ref wr) = ((x.0).0).wr_not_beat {
-                wr.time
-            } else {
-                pr1
-            };
-            let pr2 = ((y.0).0).pr;
-            let wr2 = if let Some(ref wr) = ((y.0).0).wr_not_beat {
-                wr.time
-            } else {
-                pr2
-            };
-            match ord {
-                SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
-                SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
-            }
-        }),
-        SortBy::LevelNum(ord) => match ord {
-            SortOrder::Ascending => {}
-            SortOrder::Descending => collate.sort_by(|x, y| {
-                let lev_num1 = ((x.0).0).lev_number;
-                let lev_num2 = ((y.0).0).lev_number;
-                lev_num2.cmp(&lev_num1)
-            }),
-        },
-    }
-    let (unpack, wrs_sorted): (Vec<(DataRow, Targets)>, Vec<Time>) = collate.into_iter().unzip();
-    let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
-
-    let table_rows = html::create_table_rows(&data_sorted, &targets_sorted, &wrs_sorted);
-
-    Ok((table_rows, table_footer))
+#[allow(dead_code)]
+fn get_time_class_json(time: &Time, targets: &Targets, current_wr: &Time) -> String {
+    match *time {
+        t if t > targets.beginner => "unclassified",
+        t if t > targets.ok => "beginner",
+        t if t > targets.good => "ok",
+        t if t > targets.professional => "good",
+        t if t > targets.world_class => "professional",
+        t if t > targets.legendary => "world_class",
+        t if t > targets.godlike => "legendary",
+        t if t > *current_wr => "godlike",
+        _ => "wr",
+    }.to_string()
 }
-*/
+
+pub fn get_next_target(time: &Time, target: &Targets, current_wr: &Time) -> Time {
+    match *time {
+        t if t > target.beginner => target.beginner,
+        t if t > target.ok => target.ok,
+        t if t > target.good => target.good,
+        t if t > target.professional => target.professional,
+        t if t > target.world_class => target.world_class,
+        t if t > target.legendary => target.legendary,
+        t if t > target.godlike => target.godlike,
+        t if t > *current_wr => *current_wr,
+        _ => *current_wr,
+    }
+}
