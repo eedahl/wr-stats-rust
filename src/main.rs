@@ -51,19 +51,12 @@ fn main() {
         Vec::new()
     });
 
-    let targets_table = match io::load_targets_table() {
-        Ok(tt) => tt,
-        Err(e) => {
-            html::default_error_message(e);
-            Vec::new()
-        }
-    };
+    let targets_table = io::load_targets_table().unwrap_or_else(|e| {
+        println!("Error loading targets tables: {:?}", e);
+        Vec::new()
+    });
 
     let html = html::index();
-    /* match html::build_initial_html(&wr_tables, &targets_table) {
-        Ok(h) => h,
-        Err(e) => html::default_error_message(e),
-    };*/
 
     let size = (1000, 1000);
     let resizable = true;
