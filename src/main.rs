@@ -51,13 +51,10 @@ fn main() {
         Vec::new()
     });
 
-    let targets_table = match io::load_targets_table() {
-        Ok(tt) => tt,
-        Err(e) => {
-            html::default_error_message(e);
-            Vec::new()
-        }
-    };
+    let targets_table = io::load_targets_table().unwrap_or_else(|e| {
+        println!("Error loading targets tables: {:?}", e);
+        Vec::new()
+    });
 
     let html = html::index();
 
