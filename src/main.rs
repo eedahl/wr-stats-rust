@@ -157,10 +157,11 @@ fn update_table_view<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &s
     ));
 }
 
-fn update_table_view_json<'a, T>(webview: &mut WebView<'a, T>, rows: &str, footer: &str) {
+#[allow(dead_code)]
+fn update_table_view_json<'a, T>(webview: &mut WebView<'a, T>, data: serde_json::Value) {
     webview.eval(&format!(
         "views.update({})",
-        web_view::escape(&json!({ "view": "table", "rows": rows, "footer": footer}).to_string()),
+        web_view::escape(&json!({ "view": "table", "rows": data}).to_string()),
     ));
 }
 

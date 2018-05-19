@@ -190,6 +190,7 @@ pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> 
         .collect()
 }
 
+// ! The live thing, do not edit
 pub fn build_table_update_data(
     wr_tables: &[WR],
     targets_table: &[Targets],
@@ -312,6 +313,7 @@ pub fn build_table_update_data(
     Ok((table_rows, table_footer))
 }
 
+#[allow(dead_code)]
 pub fn build_table_update_data_json(
     wr_tables: &[WR],
     targets_table: &[Targets],
@@ -328,10 +330,12 @@ pub fn build_table_update_data_json(
 
     // * Footer
     let (p_tt, target_wr_tt) = compute_tts(&data);
-    let mut target_tt = Time(0);
-    for (i, pr) in pr_table.iter().enumerate() {
-        target_tt = target_tt + get_next_target(&pr, &targets_table[i], &current_wrs[i]);
-    }
+    let target_tt = pr_table.iter().enumerate().fold(Time(0), |acc, (i, pr)| {
+        acc + get_next_target(&pr, &targets_table[i], &current_wrs[i])
+    });
+
+    let footer_json =
+        json!({"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0});
 
     let table_footer = html::format_table_footer(&p_tt, &target_wr_tt, &target_tt);
 
