@@ -106,6 +106,90 @@ pub fn build_level_update_data(wr_tables: &[WR], level: i32) -> Result<serde_jso
     )?)
 }
 
+pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {
+    let level_names = vec![
+        "Warm Up",
+        "Flat Track",
+        "Twin Peaks",
+        "Over and Under",
+        "Uphill Battle",
+        "Long Haul",
+        "Hi Flyer",
+        "Tag",
+        "Tunnel Terror",
+        "The Steppes",
+        "Gravity Ride",
+        "Islands in the Sky",
+        "Hill Legend",
+        "Loop-de-Loop",
+        "Serpents Tale",
+        "New Wave",
+        "Labyrinth",
+        "Spiral",
+        "Turnaround",
+        "Upside Down",
+        "Hangman",
+        "Slalom",
+        "Quick Round",
+        "Ramp Frenzy",
+        "Precarious",
+        "Circuitous",
+        "Shelf Life",
+        "Bounce Back",
+        "Headbanger",
+        "Pipe",
+        "Animal Farm",
+        "Steep Corner",
+        "Zig-Zag",
+        "Bumpy Journey",
+        "Labyrinth Pro",
+        "Fruit in the Den",
+        "Jaws",
+        "Curvaceous",
+        "Haircut",
+        "Double Trouble",
+        "Framework",
+        "Enduro",
+        "He He",
+        "Freefall",
+        "Sink",
+        "Bowling",
+        "Enigma",
+        "Downhill",
+        "What the Heck",
+        "Expert System",
+        "Tricks Abound",
+        "Hang Tight",
+        "Hooked",
+        "Apple Harvest",
+    ];
+
+    level_names
+        .iter()
+        .enumerate()
+        .map(|(i, lev_name)| {
+            let pr = pr_table[i];
+            let lev = i as i32 + 1;
+            let last_wr_beat = wr_tables
+                .iter()
+                .filter(|wr| (wr.lev == lev) && (pr <= wr.time))
+                .last();
+            let first_wr_not_beat = wr_tables
+                .iter()
+                .filter(|wr| (wr.lev == lev) && !(pr <= wr.time))
+                .nth(0);
+
+            DataRow {
+                lev_number: lev,
+                lev_name: lev_name.to_string(),
+                pr: pr,
+                wr_beat: last_wr_beat.cloned(),
+                wr_not_beat: first_wr_not_beat.cloned(),
+            }
+        })
+        .collect()
+}
+
 pub fn build_table_update_data(
     wr_tables: &[WR],
     targets_table: &[Targets],
@@ -116,7 +200,7 @@ pub fn build_table_update_data(
         Err(_) => io::load_stats()?,
     };
 
-    let data = io::populate_table_data(&pr_table, &wr_tables);
+    let data = populate_table_data(&pr_table, &wr_tables);
     let last_wr_table = collect_last_wr_table(&wr_tables);
     let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
 
@@ -238,7 +322,7 @@ pub fn build_table_update_data_json(
         Err(_) => io::load_stats()?,
     };
 
-    let data = io::populate_table_data(&pr_table, &wr_tables);
+    let data = populate_table_data(&pr_table, &wr_tables);
     let last_wr_table = collect_last_wr_table(&wr_tables);
     let current_wrs = collect_current_wrs(&pr_table, &last_wr_table);
 
