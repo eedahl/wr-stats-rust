@@ -64,7 +64,6 @@ var views = {
                 });
                 break;
         }
-
     },
     // TODO(edahl): make no argument update function
     updateView: function (arg) {
@@ -72,7 +71,6 @@ var views = {
         if (this.activeView == obj['view']) {
             switch (this.activeView) {
                 case 'table':
-                    //tableView.update(obj['rows'], obj['footer']);
                     tableView.update(obj['data']);
                     break;
                 case 'level':

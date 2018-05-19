@@ -94,8 +94,8 @@ fn main() {
             use Cmd::*;
             match serde_json::from_str(arg).unwrap() {
                 displayView { view } => match view.as_ref() {
-                    "table" => display_view(webview, &html::table_view()),
-                    "level" => display_view(webview, &html::level_view()),
+                    "table" => display_view(webview, "table", &html::table_view()),
+                    "level" => display_view(webview, "level", &html::level_view()),
                     v => println!("View in display request not recognised: {}", v),
                 },
                 updateView { view, arg } => match view.as_ref() {
@@ -111,7 +111,6 @@ fn main() {
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
-                        println!("level: {}", level);
                         let data = shared::get_level_update_data(&wr_tables, level).unwrap();
                         update_view(webview, "level", data);
                     }
@@ -141,10 +140,10 @@ enum Cmd {
     // * Admissible commands go here
 }
 
-fn display_view<'a, T>(webview: &mut WebView<'a, T>, template: &str) {
+fn display_view<'a, T>(webview: &mut WebView<'a, T>, view: &str, template: &str) {
     webview.eval(&format!(
         "views.display({})",
-        web_view::escape(&json!({ "view": "level", "template": template, }).to_string()),
+        web_view::escape(&json!({ "view": view, "template": template, }).to_string()),
     ));
 }
 
