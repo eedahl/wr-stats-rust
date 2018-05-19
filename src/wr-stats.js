@@ -20,7 +20,6 @@ var rpc = {
             view: view,
         });
     },
-    // TODO(edahl): make no argument update function
     updateView: function (view, arg) {
         rpc.request({
             cmd: 'updateView',
@@ -67,15 +66,17 @@ var views = {
         }
 
     },
+    // TODO(edahl): make no argument update function
     updateView: function (arg) {
         var obj = JSON.parse(arg);
         if (this.activeView == obj['view']) {
             switch (this.activeView) {
                 case 'table':
-                    tableView.update(obj['rows'], obj['footer']);
+                    //tableView.update(obj['rows'], obj['footer']);
+                    tableView.update_json(obj['data']);
                     break;
                 case 'level':
-                    levelView.update(obj['data']['level'], obj['data']['times']);
+                    levelView.update(obj['data']);
                     break;
             }
         }
@@ -132,10 +133,35 @@ var tableView = {
         document.getElementById('table-body').innerHTML = rows;
         document.getElementById('table-footer').innerHTML = footer;
     },
-    update_json: function () {
-        //document.getElementById('table-body').innerHTML = rows;
-        //document.getElementById('table-footer').innerHTML = footer;
+    update_json: function (data) {
+        // ! Rows
+        var row_data = data['rows'];
+
+        /*        var rows = row_data.map(function (row) {
+                    return formatRow(row)
+                }).reduce(function (acc, next) {
+                    acc + next;
+                }, "");
+        */
+        var rows = row_data.map(function (row) {
+            return formatRow(row)
+        }).reduce(function (acc, next) {
+            return acc + next;
+        }, "");
+
+        rpc.log(rows);
+
+        rpc.log(rows);
+        document.getElementById('table-body').innerHTML = rows;
+
+        // ! Footer
+        var footer = formatFooter(data['footer']);
+        document.getElementById('table-footer').innerHTML = footer;
     },
+    /*
+
+        ! Footer:
+    */
 }
 
 var levelView = {
@@ -148,7 +174,9 @@ var levelView = {
         //c3.generate
         //rpc.log("CHART", this.chart)
     },
-    update: function (level, times) {
+    update: function (data) {
+        var level = data['level'];
+        var times = data['times'];
         this.level = level;
         //chart.load
         //targets horizontal bars/colouring
@@ -226,7 +254,7 @@ var levelView = {
     }
 }
 
-function format_time(time) {
+function formatTime(time) {
     var hdrs = parseInt(time % 100);
     var sec = parseInt((time / 100)) % 60;
     var min = parseInt((time / (100 * 60))) % 60;
@@ -238,7 +266,7 @@ function format_time(time) {
     return str;
 }
 
-function format_time_diff(time) {
+function formatTimeDiff(time) {
     var hdrs = parseInt(time % 100);
     var sec = parseInt((time / 100)) % 60;
     var min = parseInt((time / (100 * 60))) % 60;
@@ -250,4 +278,93 @@ function format_time_diff(time) {
     str = str + ((min > 0) ? lz(sec) : sec) + ',';
     str = str + lz(hdrs);
     return str;
+}
+// ! Row
+// ! {"lev_number": lev_number,
+// ! "lev_name": lev_name,
+// ! "pr" : {"time": pr, "class": pr_class},
+// ! "wr_beat": { "time": time_b, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
+// ! "wr_not_beat": { "time": time_nb, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
+// ! "target": {"time": target, "class": target_class}}
+function formatRow(row) {
+    rpc.log(row);
+    var lev_number = row.lev_number;
+    var lev_name = row.lev_name;
+    var pr = row['pr'];
+    var wr_beat = row['wr_beat'];
+    var wr_beat_time = wr_beat.time != 0 ? wr_beat.time : "-";
+    var wr_beat_class = wr_beat.time != 0 ? wr_beat.class : "-";
+    var wr_beat_kuski = wr_beat.time != 0 ? wr_beat.kuski : "-";
+    var wr_beat_table = wr_beat.time != 0 ? wr_beat.table : "-";
+    var wr_not_beat = row['wr_not_beat'];
+    var wr_not_beat_time = wr_not_beat.time != 0 ? wr_not_beat.time : "-";
+    var wr_not_beat_class = wr_not_beat.time != 0 ? wr_not_beat.class : "-";
+    var wr_not_beat_kuski = wr_not_beat.time != 0 ? wr_not_beat.kuski : "-";
+    var wr_not_beat_table = wr_not_beat.time != 0 ? wr_not_beat.table : "-";
+    var target = row['target'];
+    return " \
+    <tr> \
+        <td>" + // * level
+        lev_number + ". " + lev_name +
+        "</td> \
+        <td class=\"" +
+        pr.class + "\">" + // * pr
+        (isNaN(pr.time) ? "-" : formatTime(pr.time)) +
+        "</td> \
+        <td class=\"" +
+        wr_beat_class + "\">" + // * wr beat
+        (isNaN(wr_beat_time) ? "-" : formatTime(wr_beat_time)) +
+        " <span class=\"diff\">(<em><strong>" +
+        (isNaN(pr.time - wr_beat_time) ? "-" : formatTimeDiff(pr.time - wr_beat_time)) +
+        "</em></strong>)</span></td> \
+        <td>" + // * kuski beat
+        wr_beat_kuski +
+        " (<em><strong>" +
+        wr_beat_table +
+        "</em></strong>)</td> \
+        <td class=\"" +
+        wr_beat_class + "\">" + // ! target wr
+        (isNaN(wr_not_beat_time) ? wr_not_beat_time : formatTime(wr_not_beat_time)) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr.time - wr_not_beat_time) +
+        "</em></strong>)</span></td> \
+        <td>" + // ! target kuski
+        wr_not_beat_kuski +
+        " (<em><strong>" +
+        wr_not_beat_table +
+        "</em></strong>)</td> \
+        <td class=\"" +
+        target.class + "\">" + // ! target
+        formatTime(target.time) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr.time - target.time) +
+        "</em></strong>)</span></td> \
+    </tr>"
+}
+// ! Footer
+// {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
+function formatFooter(footerData) {
+    var p_tt = footerData['p_tt'];
+    var target_wr_tt = footerData['target_wr_tt'];
+    var target_tt = footerData['target_tt'];
+    return " \
+    <tr> \
+        <td><\/td> \
+        <td id=\"p_tt\" class=\"tt\">" +
+        formatTime(p_tt) +
+        "<\/td><td><\/td><td><\/td>" +
+        "<td id=\"target_wr_tt\" class=\"tt\">" +
+        formatTime(target_wr_tt) +
+        " (<em><strong>" +
+        formatTimeDiff(p_tt - target_wr_tt) +
+        "<\/em><\/strong>)" +
+        "<\/td> \
+        <td><\/td> \
+        <td>" +
+        formatTime(target_tt) +
+        " (<em><strong>" +
+        formatTimeDiff(p_tt - target_tt) +
+        "</em></strong>) \
+        <\/td> \
+    <\/tr>"
 }

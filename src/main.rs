@@ -104,18 +104,18 @@ fn main() {
                             serde_json::from_value(arg["ascending"].clone()).unwrap();
                         let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
                         let sort_by = shared::get_sort_hint(&param, ascending);
-                        //let data = shared::build_table_update_data_json(
-                        //    &wr_tables,
-                        //    &targets_table,
-                        //    sort_by,
-                        //).unwrap();
-                        //update_view_json(webview, "table", data);
-                        let (ref rows, ref footer) =
-                            shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
-                                .unwrap_or_else(|err| {
-                                    (html::default_error_message(err), String::new())
-                                });
-                        update_table_view(webview, &rows, &footer)
+                        let data = shared::build_table_update_data_json(
+                            &wr_tables,
+                            &targets_table,
+                            sort_by,
+                        ).unwrap();
+                        update_view_json(webview, "table", data);
+                        //let (ref rows, ref footer) =
+                        //    shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
+                        //        .unwrap_or_else(|err| {
+                        //            (html::default_error_message(err), String::new())
+                        //        });
+                        //update_table_view(webview, &rows, &footer)
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
