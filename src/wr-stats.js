@@ -199,9 +199,10 @@ var levelView = {
                         position: 'outer-left'
                     },
                     tick: {
+                        fit: true,
                         count: 20,
                         format: function (d) {
-                            return Math.floor(d);
+                            return Math.round(d);
                         }
                     },
                 },
@@ -211,17 +212,19 @@ var levelView = {
                         position: 'outer-middle'
                     },
                     tick: {
-                        count: 20,
+                        fit: true,
+                        //count: 20,
                         format: formatTimeShort
                     }
                 },
-                y2: {
+                /*y2: {
                     show: true,
                     label: {
                         text: 'Targets',
                         position: 'outer-middle'
                     }, // ! not sure why ticks don't work
                     tick: {
+                        fit: true,
                         values: [
                             targets.godlike,
                             targets.legendary,
@@ -232,14 +235,14 @@ var levelView = {
                             targets.beginner
                         ]
                     }
-                }
+                }*/
             },
             point: {
                 show: false
             },
             size: {
                 // width: 768,
-                height: 768,
+                height: 900,
             },
             padding: {
                 right: 90,
@@ -249,38 +252,40 @@ var levelView = {
                     show: false
                 },
                 y: {
+                    show: false,
                     lines: [{
                             value: pr,
-                            text: 'PR',
+                            text: 'PR ' + formatTimeShort(pr),
+                            position: 'left'
                         },
                         {
                             value: targets.godlike,
-                            text: 'Godlike',
+                            text: 'Godlike ' + formatTimeShort(targets.godlike),
                             class: 'godlike'
                         },
                         {
                             value: targets.legendary,
-                            text: 'Legendary',
+                            text: 'Legendary ' + formatTimeShort(targets.legendary),
                             class: 'legendary'
                         },
                         {
                             value: targets.world_class,
-                            text: 'World class',
+                            text: 'World class ' + formatTimeShort(targets.world_class),
                             class: 'world_class'
                         },
                         {
                             value: targets.professional,
-                            text: 'Professional',
+                            text: 'Professional ' + formatTimeShort(targets.professional),
                             class: 'professional'
                         },
                         {
                             value: targets.good,
-                            text: 'Good',
+                            text: 'Good ' + formatTimeShort(targets.good),
                             class: 'good'
                         },
                         {
                             value: targets.ok,
-                            text: 'Ok',
+                            text: 'Ok ' + formatTimeShort(targets.ok),
                             class: 'ok'
                         },
                         {

@@ -81,6 +81,25 @@ tr:nth-child(even) {
 	color: #f3f5ca;
 }
 
+.c3 .c3-axis-x path,
+.c3 .c3-axis-x line {
+	stroke: #b8b8b8;
+}
+
+.c3 .c3-axis-y path,
+.c3 .c3-axis-y line {
+	stroke: #b8b8b8;
+}
+
+.c3-axis-x .tick,
+.c3-axis-x-label,
+.c3-axis-y .tick,
+.c3-axis-y-label,
+.c3-axis-y2 .tick,
+.c3-axis-y2-label {
+	fill: #b8b8b8;
+}
+
 .wr>line {
 	stroke: #ff0000;
 }
