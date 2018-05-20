@@ -1,27 +1,3 @@
-/*
-? ideas for data
-TT of current WRs
-TT if times at least beginner
-TT if times at least ok
-TT if times at least good
-TT if times at least professional
-TT if times at least world class
-TT if times at least legendary
-TT if times at least godlike
-Number of times past table 1
-Number of times past table 50
-Number of times past table 100
-Number of times past table 150
-Number of times past table 200
-Number of times past table 250
-Number of times past table 300
-Number of times past table 350
-Number of times past table 400
-Your closest targets are: 18. Spiral (+,01), 3. Twin Peaks (+,01) etc.
-Worst differences to see where need to improve a lot
-Graph for tt
-*/
-
 // ! Index
 pub fn index() -> String {
     format!(
@@ -71,10 +47,10 @@ r#"
         <tr>
             <th scope="col" id="lev" class="sort">Level</th>
             <th scope="col" id="pr" class="sort">PR</th>
-            <th scope="col" id="wr-beat" class="sort"">WR beat</th>
             <th scope="col" id="kuski-beat" class="sort">Kuski beat (<strong><em>table</em></strong>)</th>
-            <th scope="col" id="target-wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
+            <th scope="col" id="wr-beat" class="sort"">WR beat</th>
             <th scope="col" id="kuski-to-beat" class="sort">Kuski to beat (<strong><em>table</em></strong>)</th>
+            <th scope="col" id="target-wr" class="sort">Target WR (<strong><em>diff</em></strong>)</th>
             <th scope="col" id="target" class="sort">Next target</th>
         </tr>
     </thead>

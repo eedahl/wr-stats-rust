@@ -170,22 +170,13 @@ var tableView = {
 var levelView = {
     level: 1,
     //chart: null,
-    init: function () {
-        //this.level = 48;
-        //var chart = 
-        //this.chart = 
-        //c3.generate
-        //rpc.log("CHART", this.chart)
-    },
+    init: function () {},
     update: function (data) {
         var level = data['level'];
         var times = data['times'];
         var targets = data['targets'];
         var pr = data.pr;
         this.level = level;
-        //chart.load
-        //targets horizontal bars/colouring
-        // TODO(edahl): change min range to at least include pr
         c3.generate({
             bindto: '#chart',
             data: {
@@ -215,29 +206,9 @@ var levelView = {
                     },
                     tick: {
                         fit: true,
-                        //count: 20,
                         format: formatTimeShort
                     }
                 },
-                /*y2: {
-                    show: true,
-                    label: {
-                        text: 'Targets',
-                        position: 'outer-middle'
-                    }, // ! not sure why ticks don't work
-                    tick: {
-                        fit: true,
-                        values: [
-                            targets.godlike,
-                            targets.legendary,
-                            targets.world_class,
-                            targets.professional,
-                            targets.good,
-                            targets.ok,
-                            targets.beginner
-                        ]
-                    }
-                }*/
             },
             point: {
                 show: false
@@ -311,6 +282,15 @@ var levelView = {
     }
 }
 
+var util = {
+    range: function (i) {
+        return Array.apply(null, Array(i)).map(function (_, j) {
+            return j;
+        });
+    }
+}
+
+// ! Time formats
 function formatTime(time) {
     if (isNaN(time)) {
         return '-'
@@ -375,6 +355,7 @@ function formatTimeDiff(time) {
     return str;
 }
 
+// ! HTML generation
 // * Row
 // * {"lev_number": lev_number,
 // * "lev_name": lev_name,
@@ -386,57 +367,45 @@ function formatRow(row) {
     var lev_number = row.lev_number;
     var lev_name = row.lev_name;
     var pr = row['pr'];
-    var wr_beat = row['wr_beat'];
-    var wr_beat_time = wr_beat.time != 0 ? wr_beat.time : "-";
-    var wr_beat_class = wr_beat.time != 0 ? wr_beat.class : "";
-    var wr_beat_kuski = wr_beat.time != 0 ? wr_beat.kuski : "-";
-    var wr_beat_table = wr_beat.time != 0 ? wr_beat.table : "-";
-    var wr_not_beat = row['wr_not_beat'];
-    var wr_not_beat_time = wr_not_beat.time != 0 ? wr_not_beat.time : "-";
-    var wr_not_beat_class = wr_not_beat.time != 0 ? wr_not_beat.class : "";
-    var wr_not_beat_kuski = wr_not_beat.time != 0 ? wr_not_beat.kuski : "-";
-    var wr_not_beat_table = wr_not_beat.time != 0 ? wr_not_beat.table : "-";
     var target = row['target'];
-    return " \
-    <tr id=\"lev-" + lev_number + "\"> \
-        <td>" + // * level
+    return "<tr id=\"lev-" + lev_number + "\"><td>" +
         lev_number + ". " + lev_name +
-        "</td> \
-        <td class=\"" +
+        "</td><td class=\"" +
         pr.class + "\">" + // * pr
         formatTime(pr.time) +
-        "</td> \
-        <td class=\"" +
-        wr_beat_class + "\">" + // * wr beat
-        formatTime(wr_beat_time) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(pr.time - wr_beat_time) +
-        "</em></strong>)</span></td> \
-        <td>" + // * kuski beat
-        wr_beat_kuski +
-        " (<em><strong>" +
-        wr_beat_table +
-        "</em></strong>)</td> \
-        <td class=\"" +
-        wr_not_beat_class + "\">" + // * target wr
-        formatTime(wr_not_beat_time) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(pr.time - wr_not_beat_time) +
-        "</em></strong>)</span></td> \
-        <td>" + // * target kuski
-        wr_not_beat_kuski +
-        " (<em><strong>" +
-        wr_not_beat_table +
-        "</em></strong>)</td> \
-        <td class=\"" +
-        target.class + "\">" + // * target
-        formatTime(target.time) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(pr.time - target.time) +
-        "</em></strong>)</span></td> \
-    </tr>"
+        "</td>" +
+        formatTimeEntry(pr.time, row['wr_beat']) +
+        formatTimeEntry(pr.time, row['wr_not_beat']) +
+        formatTimeEntry(pr.time, row['target']) +
+        "</tr>"
 }
 
+function formatTimeEntry(pr, entry) {
+    if (entry['time'] == 0) {
+        return "<td>-</td><td>-</td>";
+    }
+
+    var kuskiTd = "";
+    if (entry['table'] != 0 && entry['table'] != null) {
+        kuskiTd = "<td>" + entry['kuski'] +
+            " (<em><strong>" + entry['table'] + "</em></strong>)</td>";
+    } else if (entry['time'] == 0) {
+        return "<td>-</td>";
+    } else {
+        kuskiTd = "";
+    }
+
+    var timeTd = "<td class=\"" + entry['class'] + "\">" +
+        formatTime(entry['time']) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr - entry['time']) +
+        "</em></strong>)</span></td>";
+
+    return kuskiTd + timeTd;
+
+}
+
+// * Footer
 // * {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
 function formatFooter(footerData) {
     var p_tt = footerData['p_tt'];
@@ -462,12 +431,4 @@ function formatFooter(footerData) {
         "</em></strong>) \
         <\/td> \
     <\/tr>"
-}
-
-var util = {
-    range: function (i) {
-        return Array.apply(null, Array(i)).map(function (_, j) {
-            return j;
-        });
-    }
 }

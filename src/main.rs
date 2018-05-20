@@ -34,10 +34,32 @@ use web_view::WebView;
 // ? that show the development from table 1 to whichever is the last one
 // ? together with info like targets, etc., that you would expect for that one level
 // ? and a horizontal line showing your current time
-// ? --- seems that a left pane would be mostly extra clutter
 // ? an alternative would be a header with "Overview" and "Additional stats" that lets you
 // ? click between the table and additional stats like different tts and table counts
-// ? together with the more focused pr level pane
+/*
+? ideas for data
+TT of current WRs
+TT if times at least beginner
+TT if times at least ok
+TT if times at least good
+TT if times at least professional
+TT if times at least world class
+TT if times at least legendary
+TT if times at least godlike
+Number of times past table 1
+Number of times past table 50
+Number of times past table 100
+Number of times past table 150
+Number of times past table 200
+Number of times past table 250
+Number of times past table 300
+Number of times past table 350
+Number of times past table 400
+Your closest targets are: 18. Spiral (+,01), 3. Twin Peaks (+,01) etc.
+Worst differences to see where need to improve a lot
+Graph for tt
+*/
+
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);
