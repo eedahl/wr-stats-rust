@@ -1,6 +1,5 @@
 use elma::Time;
 use failure::Error;
-use html;
 use io;
 use serde_json;
 
@@ -296,7 +295,6 @@ pub fn build_table_update_data(
         collate.into_iter().unzip();
     let (data_sorted, targets_sorted): (Vec<DataRow>, Vec<Targets>) = unpack.into_iter().unzip();
 
-    // ! Goal
     let json_row_data: serde_json::Value = data_sorted
         .iter()
         .enumerate()
@@ -311,20 +309,19 @@ pub fn build_table_update_data(
                     wr_not_beat,
                 },
             )| {
-                let pr_class = get_time_class_json(pr, &targets_sorted[i], &current_wrs_sorted[i]);
+                let pr_class = get_time_class(pr, &targets_sorted[i], &current_wrs_sorted[i]);
                 let target = get_next_target(pr, &targets_sorted[i], &current_wrs_sorted[i]);
-
                 let target_class = if target != Time(0) {
-                    get_time_class_json(&target, &targets_sorted[i], &current_wrs_sorted[i])
+                    get_time_class(&target, &targets_sorted[i], &current_wrs_sorted[i])
                 } else {
                     "".to_owned()
                 };
                 let (table_b, _, time_b, kuski_b) = wr_to_values(wr_beat);
                 let wr_b_class =
-                    get_time_class_json(&time_b, &targets_sorted[i], &current_wrs_sorted[i]);
+                    get_time_class(&time_b, &targets_sorted[i], &current_wrs_sorted[i]);
                 let (table_nb, _, time_nb, kuski_nb) = wr_to_values(wr_not_beat);
                 let wr_nb_class =
-                    get_time_class_json(&time_nb, &targets_sorted[i], &current_wrs_sorted[i]);
+                    get_time_class(&time_nb, &targets_sorted[i], &current_wrs_sorted[i]);
                 json!({"lev_number": lev_number,
                         "lev_name": lev_name,
                         "pr" : {"time": pr.0, "class": pr_class},
@@ -336,9 +333,7 @@ pub fn build_table_update_data(
         .collect::<Vec<_>>()
         .into();
 
-    let json_data: serde_json::Value = json!({"rows": json_row_data, "footer": footer_json});
-
-    Ok(json_data)
+    Ok(json!({"rows": json_row_data, "footer": footer_json}))
 }
 
 pub fn wr_to_values(wr: &Option<WR>) -> (i32, i32, Time, String) {
@@ -384,8 +379,7 @@ fn collect_current_wrs(prs: &[Time], cur_wrt: &[WR]) -> Vec<Time> {
         .collect()
 }
 
-#[allow(dead_code)]
-fn get_time_class_json(time: &Time, targets: &Targets, current_wr: &Time) -> String {
+fn get_time_class(time: &Time, targets: &Targets, current_wr: &Time) -> String {
     match *time {
         t if t > targets.beginner => "unclassified",
         t if t > targets.ok => "beginner",

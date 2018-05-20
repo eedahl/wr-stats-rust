@@ -75,8 +75,6 @@ r#"
 pub fn table_view() -> String {
     format!(
 r#"
-<p>Table view</p>
-<p id="to-chart-view" onclick="rpc.request({{cmd: 'displayView', view: 'level', }});">Go to chart view</p>
 <table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
     <thead>
         <tr>

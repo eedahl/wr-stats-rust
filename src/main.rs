@@ -80,7 +80,7 @@ fn main() {
                     match rx.recv() {
                         Ok(DebouncedEvent::Write(_path)) => {
                             webview.dispatch(move |webview, _userdata| {
-                                webview.eval(&format!("rpc.updateTableView();"));
+                                webview.eval(&format!("views.updateView();"));
                             });
                         }
                         Ok(_event) => (),
@@ -142,12 +142,11 @@ enum Cmd {
 
 fn display_view<'a, T>(webview: &mut WebView<'a, T>, view: &str, template: &str) {
     webview.eval(&format!(
-        "views.display({})",
+        "views.display({});",
         web_view::escape(&json!({ "view": view, "template": template, }).to_string()),
     ));
 }
 
-#[allow(dead_code)]
 fn update_view<'a, T>(webview: &mut WebView<'a, T>, view: &str, data: serde_json::Value) {
     webview.eval(&format!(
         "views.updateView({})",

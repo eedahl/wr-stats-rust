@@ -10,18 +10,18 @@ window.onload = function () {
 var rpc = {
     request: function (arg) {
         if (arg['cmd'] != 'log') {
-            rpc.log('request:', JSON.stringify(arg));
+            this.log('request:', JSON.stringify(arg));
         }
         window.external.invoke(JSON.stringify(arg));
     },
     displayView: function (view) {
-        rpc.request({
+        this.request({
             cmd: 'displayView',
             view: view,
         });
     },
     updateView: function (view, arg) {
-        rpc.request({
+        this.request({
             cmd: 'updateView',
             view: view,
             arg: arg,
@@ -35,12 +35,11 @@ var rpc = {
             }
             s = s + JSON.stringify(arguments[i]);
         }
-        rpc.request({
+        this.request({
             cmd: 'log',
             text: s
         });
     },
-
 }
 
 var views = {
@@ -65,16 +64,26 @@ var views = {
                 break;
         }
     },
-    // TODO(edahl): make no argument update function
     updateView: function (arg) {
-        var obj = JSON.parse(arg);
-        if (this.activeView == obj['view']) {
+        if (arg) {
+            var obj = JSON.parse(arg);
+            if (this.activeView == obj['view']) {
+                switch (this.activeView) {
+                    case 'table':
+                        tableView.update(obj['data']);
+                        break;
+                    case 'level':
+                        levelView.update(obj['data']);
+                        break;
+                }
+            }
+        } else {
             switch (this.activeView) {
                 case 'table':
-                    tableView.update(obj['data']);
+                    rpc.updateView(this.activeView, tableView.getArg());
                     break;
                 case 'level':
-                    levelView.update(obj['data']);
+                    rpc.updateView(this.activeView, levelView.getArg());
                     break;
             }
         }
@@ -128,22 +137,42 @@ var tableView = {
     },
     update: function (data) {
         var row_data = data['rows'];
+
         var rows = row_data.map(function (row) {
             return formatRow(row)
         }).reduce(function (acc, next) {
             return acc + next;
         }, "");
+
         document.getElementById('table-body').innerHTML = rows;
         var footer = formatFooter(data['footer']);
         document.getElementById('table-footer').innerHTML = footer;
+
+        range(54).map(function (i) {
+            document.getElementById('lev-' + (i + 1).toString())
+                .addEventListener("click", function () {
+                    rpc.log('displaying lev view', i + 1);
+                    levelView.level = i + 1;
+                    rpc.request({
+                        cmd: 'displayView',
+                        view: 'level'
+                    });
+                })
+        });
     },
+    getArg: function () {
+        return {
+            'param': this.param,
+            'ascending': this.ascending
+        };
+    }
 }
 
 var levelView = {
-    level: 0,
+    level: 1,
     //chart: null,
     init: function () {
-        this.level = 48;
+        //this.level = 48;
         //var chart = 
         //this.chart = 
         //c3.generate
@@ -177,7 +206,7 @@ var levelView = {
                         position: 'outer-middle'
                     },
                     tick: {
-                        format: d3.format("") // ADD
+                        format: formatTimeShort
                     }
                 },
                 y2: {
@@ -226,10 +255,18 @@ var levelView = {
                 rescale: true
             }
         });
+    },
+    getArg: function () {
+        return {
+            'level': levelView.level
+        };
     }
 }
 
 function formatTime(time) {
+    if (isNaN(time)) {
+        return '-'
+    }
     var pos = true;
     if (time < 0) {
         pos = false;
@@ -246,7 +283,32 @@ function formatTime(time) {
     return str;
 }
 
+function formatTimeShort(time) {
+    if (isNaN(time)) {
+        return '-'
+    }
+    var pos = true;
+    if (time < 0) {
+        pos = false;
+        time = -time;
+    }
+    var hdrs = parseInt(time % 100);
+    var sec = parseInt((time / 100)) % 60;
+    var min = parseInt((time / (100 * 60))) % 60;
+    var hrs = parseInt(time / (100 * 60 * 60));
+    var lz = d3.format("02d");
+    var str = (pos) ? '' : '-';
+    str = str + ((hrs > 0) ? (hrs + ':') : '');
+    str = str + ((hrs > 0) ? ((min > 0) ? lz(min) : '') : (min > 0) ? (min + ':') : '');
+    str = str + ((min > 0) ? lz(sec) : sec) + ',';
+    str = str + lz(hdrs);
+    return str;
+}
+
 function formatTimeDiff(time) {
+    if (isNaN(time)) {
+        return '-'
+    }
     var pos = true;
     if (time < 0) {
         pos = false;
@@ -278,29 +340,29 @@ function formatRow(row) {
     var pr = row['pr'];
     var wr_beat = row['wr_beat'];
     var wr_beat_time = wr_beat.time != 0 ? wr_beat.time : "-";
-    var wr_beat_class = wr_beat.time != 0 ? wr_beat.class : "-";
+    var wr_beat_class = wr_beat.time != 0 ? wr_beat.class : "";
     var wr_beat_kuski = wr_beat.time != 0 ? wr_beat.kuski : "-";
     var wr_beat_table = wr_beat.time != 0 ? wr_beat.table : "-";
     var wr_not_beat = row['wr_not_beat'];
     var wr_not_beat_time = wr_not_beat.time != 0 ? wr_not_beat.time : "-";
-    var wr_not_beat_class = wr_not_beat.time != 0 ? wr_not_beat.class : "-";
+    var wr_not_beat_class = wr_not_beat.time != 0 ? wr_not_beat.class : "";
     var wr_not_beat_kuski = wr_not_beat.time != 0 ? wr_not_beat.kuski : "-";
     var wr_not_beat_table = wr_not_beat.time != 0 ? wr_not_beat.table : "-";
     var target = row['target'];
     return " \
-    <tr> \
+    <tr id=\"lev-" + lev_number + "\"> \
         <td>" + // * level
         lev_number + ". " + lev_name +
         "</td> \
         <td class=\"" +
         pr.class + "\">" + // * pr
-        (isNaN(pr.time) ? "-" : formatTime(pr.time)) +
+        formatTime(pr.time) +
         "</td> \
         <td class=\"" +
         wr_beat_class + "\">" + // * wr beat
-        (isNaN(wr_beat_time) ? "-" : formatTime(wr_beat_time)) +
+        formatTime(wr_beat_time) +
         " <span class=\"diff\">(<em><strong>" +
-        (isNaN(pr.time - wr_beat_time) ? "-" : formatTimeDiff(pr.time - wr_beat_time)) +
+        formatTimeDiff(pr.time - wr_beat_time) +
         "</em></strong>)</span></td> \
         <td>" + // * kuski beat
         wr_beat_kuski +
@@ -309,7 +371,7 @@ function formatRow(row) {
         "</em></strong>)</td> \
         <td class=\"" +
         wr_not_beat_class + "\">" + // ! target wr
-        (isNaN(wr_not_beat_time) ? wr_not_beat_time : formatTime(wr_not_beat_time)) +
+        formatTime(wr_not_beat_time) +
         " <span class=\"diff\">(<em><strong>" +
         formatTimeDiff(pr.time - wr_not_beat_time) +
         "</em></strong>)</span></td> \
@@ -352,4 +414,10 @@ function formatFooter(footerData) {
         "</em></strong>) \
         <\/td> \
     <\/tr>"
+}
+
+function range(i) {
+    return Array.apply(null, Array(i)).map(function (_, j) {
+        return j;
+    });
 }
