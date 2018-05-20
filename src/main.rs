@@ -1,4 +1,4 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 extern crate elma;
 extern crate failure;
 extern crate notify;
@@ -111,7 +111,11 @@ fn main() {
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
-                        let data = shared::get_level_update_data(&wr_tables, level).unwrap();
+                        let data = shared::get_level_update_data(
+                            &wr_tables,
+                            &targets_table[(level - 1) as usize],
+                            level,
+                        ).unwrap();
                         update_view(webview, "level", data);
                     }
                     v => println!("View in update request not recognised: {}", v),

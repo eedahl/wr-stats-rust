@@ -1,7 +1,5 @@
 /*
 ? ideas for data
-Personal total time (TT)
-Target WRs TT
 TT of current WRs
 TT if times at least beginner
 TT if times at least ok
@@ -21,14 +19,7 @@ Number of times past table 350
 Number of times past table 400
 Your closest targets are: 18. Spiral (+,01), 3. Twin Peaks (+,01) etc.
 Worst differences to see where need to improve a lot
-
-// ? Use any of these?
-// ? {bootstrap_js}
-// ? bootstrap_js = inline_script(include_str!("bootstrap-4.1.1/js/bootstrap.min.js")),
-// ? {plotly}
-// ? plotly = inline_script(include_str!("plotly-latest.min.js")),
-// ? {jquery}
-// ? jquery = inline_script(include_str!("jquery-3.3.1.min.js")),
+Graph for tt
 */
 
 // ! Index
