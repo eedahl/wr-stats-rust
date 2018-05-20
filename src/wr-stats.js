@@ -185,6 +185,7 @@ var levelView = {
         this.level = level;
         //chart.load
         //targets horizontal bars/colouring
+        // TODO(edahl): change min range to at least include pr
         c3.generate({
             bindto: '#chart',
             data: {
@@ -207,6 +208,7 @@ var levelView = {
                     },
                 },
                 y: {
+                    max: pr > times[0] ? Math.ceil(pr) : Math.ceil(times[0]),
                     label: {
                         text: 'Times',
                         position: 'outer-middle'
