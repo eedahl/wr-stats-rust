@@ -83,14 +83,31 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     }
 }
 
-pub fn get_level_update_data(wr_tables: &[WR], level: i32) -> Result<serde_json::Value, Error> {
+pub fn get_level_update_data(
+    wr_tables: &[WR],
+    targets: &Targets,
+    level: i32,
+) -> Result<serde_json::Value, Error> {
+    let pr_table = match io::load_state() {
+        Ok(t) => t,
+        Err(_) => io::load_stats()?,
+    };
     Ok(json!({"level": level, "times": serde_json::to_value(
         wr_tables
             .into_iter()
             .filter(|x| (*x).lev == level)
             .map(|x| x.time.0)
             .collect::<Vec<_>>(),
-    )?}))
+    )?,
+    "pr": pr_table[(level-1) as usize].0,
+    "targets": {
+        "godlike":targets.godlike.0,
+        "legendary": targets.legendary.0,
+        "world_class": targets.world_class.0,
+        "professional": targets.professional.0,
+        "good": targets.good.0,
+        "ok": targets.ok.0,
+        "beginner": targets.beginner.0}}))
 }
 
 pub fn populate_table_data(pr_table: &[Time], wr_tables: &[WR]) -> Vec<DataRow> {

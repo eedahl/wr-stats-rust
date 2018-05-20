@@ -10,7 +10,7 @@ window.onload = function () {
 var rpc = {
     request: function (arg) {
         if (arg['cmd'] != 'log') {
-            this.log('request:', JSON.stringify(arg));
+            //this.log('request:', JSON.stringify(arg));
         }
         window.external.invoke(JSON.stringify(arg));
     },
@@ -148,10 +148,9 @@ var tableView = {
         var footer = formatFooter(data['footer']);
         document.getElementById('table-footer').innerHTML = footer;
 
-        range(54).map(function (i) {
+        util.range(54).map(function (i) {
             document.getElementById('lev-' + (i + 1).toString())
                 .addEventListener("click", function () {
-                    rpc.log('displaying lev view', i + 1);
                     levelView.level = i + 1;
                     rpc.request({
                         cmd: 'displayView',
@@ -181,6 +180,8 @@ var levelView = {
     update: function (data) {
         var level = data['level'];
         var times = data['times'];
+        var targets = data['targets'];
+        var pr = data.pr;
         this.level = level;
         //chart.load
         //targets horizontal bars/colouring
@@ -189,10 +190,14 @@ var levelView = {
             data: {
                 columns: [
                     ['Times'].concat(times)
-                ]
+                ],
             },
             axis: {
                 x: {
+                    label: {
+                        text: 'Level ' + level.toString(),
+                        position: 'outer-left'
+                    },
                     tick: {
                         count: 20,
                         format: function (d) {
@@ -206,6 +211,7 @@ var levelView = {
                         position: 'outer-middle'
                     },
                     tick: {
+                        count: 20,
                         format: formatTimeShort
                     }
                 },
@@ -214,6 +220,17 @@ var levelView = {
                     label: {
                         text: 'Targets',
                         position: 'outer-middle'
+                    }, // ! not sure why ticks don't work
+                    tick: {
+                        values: [
+                            targets.godlike,
+                            targets.legendary,
+                            targets.world_class,
+                            targets.professional,
+                            targets.good,
+                            targets.ok,
+                            targets.beginner
+                        ]
                     }
                 }
             },
@@ -221,11 +238,11 @@ var levelView = {
                 show: false
             },
             size: {
-                width: 768,
-                height: 450,
+                // width: 768,
+                height: 768,
             },
             padding: {
-                right: 20,
+                right: 90,
             },
             grid: {
                 x: {
@@ -233,20 +250,44 @@ var levelView = {
                 },
                 y: {
                     lines: [{
-                            value: 4500,
-                            text: 'Label on line 1',
-                            class: 'professional'
+                            value: pr,
+                            text: 'PR',
                         },
                         {
-                            value: 4200,
-                            text: 'Label on line 2',
+                            value: targets.godlike,
+                            text: 'Godlike',
                             class: 'godlike'
                         },
                         {
-                            value: 3000,
-                            text: 'Label on line 3',
-                            class: 'wr'
-                        }
+                            value: targets.legendary,
+                            text: 'Legendary',
+                            class: 'legendary'
+                        },
+                        {
+                            value: targets.world_class,
+                            text: 'World class',
+                            class: 'world_class'
+                        },
+                        {
+                            value: targets.professional,
+                            text: 'Professional',
+                            class: 'professional'
+                        },
+                        {
+                            value: targets.good,
+                            text: 'Good',
+                            class: 'good'
+                        },
+                        {
+                            value: targets.ok,
+                            text: 'Ok',
+                            class: 'ok'
+                        },
+                        {
+                            value: targets.beginner,
+                            text: 'Beginner',
+                            class: 'beginner'
+                        },
                     ]
                 }
             },
@@ -370,18 +411,18 @@ function formatRow(row) {
         wr_beat_table +
         "</em></strong>)</td> \
         <td class=\"" +
-        wr_not_beat_class + "\">" + // ! target wr
+        wr_not_beat_class + "\">" + // * target wr
         formatTime(wr_not_beat_time) +
         " <span class=\"diff\">(<em><strong>" +
         formatTimeDiff(pr.time - wr_not_beat_time) +
         "</em></strong>)</span></td> \
-        <td>" + // ! target kuski
+        <td>" + // * target kuski
         wr_not_beat_kuski +
         " (<em><strong>" +
         wr_not_beat_table +
         "</em></strong>)</td> \
         <td class=\"" +
-        target.class + "\">" + // ! target
+        target.class + "\">" + // * target
         formatTime(target.time) +
         " <span class=\"diff\">(<em><strong>" +
         formatTimeDiff(pr.time - target.time) +
@@ -416,8 +457,10 @@ function formatFooter(footerData) {
     <\/tr>"
 }
 
-function range(i) {
-    return Array.apply(null, Array(i)).map(function (_, j) {
-        return j;
-    });
+var util = {
+    range: function (i) {
+        return Array.apply(null, Array(i)).map(function (_, j) {
+            return j;
+        });
+    }
 }
