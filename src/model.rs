@@ -24,7 +24,7 @@ impl Model {
             Err(_) => load_stats()?,
         };
 
-        Ok(Model {
+        Ok(Self {
             wr_tables,
             targets_table,
             pr_table,

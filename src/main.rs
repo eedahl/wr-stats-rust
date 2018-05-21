@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 extern crate elma;
 extern crate failure;
 extern crate notify;
@@ -22,7 +22,6 @@ use web_view::WebView;
 //TODO(edahl): refactor sorting rust-side
 //TODO(edahl): colour tts
 //TODO(edahl): multiple pages, like say you want to see the development in a lev over all wr tables
-// ? a better data structure
 // ? functionality to browse WR tables
 // ? browse targets
 // ? a side pane that can possibly be collapsable, should be simple JS
@@ -134,11 +133,15 @@ fn main() {
                         let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
                         let sort_by = shared::get_sort_hint(&param, ascending);
 
+                        model.update_pr_table().expect("Failed to update PR table.");
+
                         let data = controllers::build_table_update_data(&model, sort_by).unwrap();
                         update_view(webview, "table", data);
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
+
+                        model.update_pr_table().expect("Failed to update PR table.");
 
                         let data = controllers::get_level_update_data(&model, level).unwrap();
                         update_view(webview, "level", data);
