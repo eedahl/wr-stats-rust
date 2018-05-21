@@ -63,6 +63,8 @@ Graph for tt
 mod controllers;
 mod model;
 
+use model::Model;
+
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);
@@ -70,6 +72,8 @@ fn main() {
     http::download_targets().unwrap_or_else(|e| {
         println!("Error getting targets table: {:?}", e);
     });
+
+    let mut model = Model::new();
 
     let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
         println!("Error loading WR tables: {:?}", e);
