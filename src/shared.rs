@@ -45,37 +45,15 @@ pub enum SortOrder {
 }
 
 pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
+    use self::SortBy::*;
+    use self::SortOrder::*;
     match sort_param {
-        "PR" => SortBy::PR(if ascending {
-            SortOrder::Ascending
-        } else {
-            SortOrder::Descending
-        }),
-        "DiffToPrevWR" => SortBy::DiffToPrevWR(if ascending {
-            SortOrder::Ascending
-        } else {
-            SortOrder::Descending
-        }),
-        "DiffToNextWR" => SortBy::DiffToNextWR(if ascending {
-            SortOrder::Ascending
-        } else {
-            SortOrder::Descending
-        }),
-        "DiffToNextTarget" => SortBy::DiffToNextTarget(if ascending {
-            SortOrder::Ascending
-        } else {
-            SortOrder::Descending
-        }),
-        "LevelNum" => SortBy::LevelNum(if ascending {
-            SortOrder::Ascending
-        } else {
-            SortOrder::Descending
-        }),
-        "Table" => SortBy::Table(if ascending {
-            SortOrder::Ascending
-        } else {
-            SortOrder::Descending
-        }),
-        &_ => SortBy::LevelNum(SortOrder::Ascending),
+        "PR" => PR(if ascending { Ascending } else { Descending }),
+        "DiffToPrevWR" => DiffToPrevWR(if ascending { Ascending } else { Descending }),
+        "DiffToNextWR" => DiffToNextWR(if ascending { Ascending } else { Descending }),
+        "DiffToNextTarget" => DiffToNextTarget(if ascending { Ascending } else { Descending }),
+        "LevelNum" => LevelNum(if ascending { Ascending } else { Descending }),
+        "Table" => Table(if ascending { Ascending } else { Descending }),
+        &_ => LevelNum(Ascending),
     }
 }
