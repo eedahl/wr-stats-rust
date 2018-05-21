@@ -11,7 +11,6 @@ extern crate serde_json;
 
 mod html;
 mod http;
-mod io;
 mod shared;
 
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
@@ -133,7 +132,7 @@ fn main() {
                         let ascending: bool =
                             serde_json::from_value(arg["ascending"].clone()).unwrap();
                         let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
-                        let sort_by = controllers::get_sort_hint(&param, ascending);
+                        let sort_by = shared::get_sort_hint(&param, ascending);
 
                         let data = controllers::build_table_update_data(&model, sort_by).unwrap();
                         update_view(webview, "table", data);
