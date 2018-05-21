@@ -66,7 +66,7 @@ r#"
 pub fn level_view() -> String {
     format!(
         r#"
-<p>Level view</p>
+<h2>Level view</h2>
 <p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
 <div id="chart" class="container-fluid"></div>
 "#)

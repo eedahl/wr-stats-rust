@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 extern crate elma;
 extern crate failure;
 extern crate notify;
@@ -11,7 +11,6 @@ extern crate serde_json;
 
 mod html;
 mod http;
-mod io;
 mod shared;
 
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
@@ -23,7 +22,6 @@ use web_view::WebView;
 //TODO(edahl): refactor sorting rust-side
 //TODO(edahl): colour tts
 //TODO(edahl): multiple pages, like say you want to see the development in a lev over all wr tables
-// ? a better data structure
 // ? functionality to browse WR tables
 // ? browse targets
 // ? a side pane that can possibly be collapsable, should be simple JS
@@ -60,6 +58,11 @@ Worst differences to see where need to improve a lot
 Graph for tt
 */
 
+mod controllers;
+mod model;
+
+use model::Model;
+
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);
@@ -68,15 +71,18 @@ fn main() {
         println!("Error getting targets table: {:?}", e);
     });
 
-    let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
-        println!("Error loading WR tables: {:?}", e);
-        Vec::new()
-    });
+    let mut model = Model::new().expect("Could not create model.");
+    model.update_pr_table().expect("Could not update model.");
 
-    let targets_table = io::load_targets_table().unwrap_or_else(|e| {
-        println!("Error loading targets tables: {:?}", e);
-        Vec::new()
-    });
+    //let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
+    //    println!("Error loading WR tables: {:?}", e);
+    //    Vec::new()
+    //});
+    //
+    //let targets_table = io::load_targets_table().unwrap_or_else(|e| {
+    //    println!("Error loading targets tables: {:?}", e);
+    //    Vec::new()
+    //});
 
     let html = html::index();
 
@@ -126,18 +132,18 @@ fn main() {
                             serde_json::from_value(arg["ascending"].clone()).unwrap();
                         let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
                         let sort_by = shared::get_sort_hint(&param, ascending);
-                        let data =
-                            shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
-                                .unwrap();
+
+                        model.update_pr_table().expect("Failed to update PR table.");
+
+                        let data = controllers::build_table_update_data(&model, sort_by).unwrap();
                         update_view(webview, "table", data);
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
-                        let data = shared::get_level_update_data(
-                            &wr_tables,
-                            &targets_table[(level - 1) as usize],
-                            level,
-                        ).unwrap();
+
+                        model.update_pr_table().expect("Failed to update PR table.");
+
+                        let data = controllers::get_level_update_data(&model, level).unwrap();
                         update_view(webview, "level", data);
                     }
                     v => println!("View in update request not recognised: {}", v),

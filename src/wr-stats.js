@@ -367,34 +367,28 @@ function formatRow(row) {
     var lev_number = row.lev_number;
     var lev_name = row.lev_name;
     var pr = row['pr'];
-    var target = row['target'];
     return "<tr id=\"lev-" + lev_number + "\"><td>" +
         lev_number + ". " + lev_name +
         "</td><td class=\"" +
         pr.class + "\">" + // * pr
         formatTime(pr.time) +
         "</td>" +
-        formatTimeEntry(pr.time, row['wr_beat']) +
-        formatTimeEntry(pr.time, row['wr_not_beat']) +
-        formatTimeEntry(pr.time, row['target']) +
+        formatTimeEntry(row['wr_beat'], pr.time) +
+        formatTimeEntry(row['wr_not_beat'], pr.time) +
+        formatTimeEntry(row['target'], pr.time) +
         "</tr>"
 }
 
-function formatTimeEntry(pr, entry) {
+// * Not very robust
+function formatTimeEntry(entry, pr) {
     if (entry['time'] == 0) {
         return "<td>-</td><td>-</td>";
     }
-
     var kuskiTd = "";
     if (entry['table'] != 0 && entry['table'] != null) {
-        kuskiTd = "<td>" + entry['kuski'] +
-            " (<em><strong>" + entry['table'] + "</em></strong>)</td>";
-    } else if (entry['time'] == 0) {
-        return "<td>-</td>";
-    } else {
-        kuskiTd = "";
+        kuskiTd = "<td>" + entry['kuski'] + " (<em><strong>" +
+            entry['table'] + "</em></strong>)</td>";
     }
-
     var timeTd = "<td class=\"" + entry['class'] + "\">" +
         formatTime(entry['time']) +
         " <span class=\"diff\">(<em><strong>" +
@@ -421,10 +415,7 @@ function formatFooter(footerData) {
         formatTime(target_wr_tt) +
         " (<em><strong>" +
         formatTimeDiff(p_tt - target_wr_tt) +
-        "<\/em><\/strong>)" +
-        "<\/td> \
-        <td><\/td> \
-        <td>" +
+        "<\/em><\/strong>)<\/td><td><\/td><td>" +
         formatTime(target_tt) +
         " (<em><strong>" +
         formatTimeDiff(p_tt - target_tt) +
@@ -432,3 +423,13 @@ function formatFooter(footerData) {
         <\/td> \
     <\/tr>"
 }
+
+/*
+function (p_tt, tt) {
+    return "<td id=\"target_wr_tt\" class=\"tt\">" +
+        formatTime(tt) +
+        " (<em><strong>" +
+        formatTimeDiff(p_tt - tt) +
+        "<\/em><\/strong>)<\/td>";
+}
+*/
