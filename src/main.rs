@@ -73,17 +73,18 @@ fn main() {
         println!("Error getting targets table: {:?}", e);
     });
 
-    let mut model = Model::new();
+    let mut model = Model::new().expect("Could not create model.");
+    model.update_pr_table().expect("Could not update model.");
 
-    let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
-        println!("Error loading WR tables: {:?}", e);
-        Vec::new()
-    });
-
-    let targets_table = io::load_targets_table().unwrap_or_else(|e| {
-        println!("Error loading targets tables: {:?}", e);
-        Vec::new()
-    });
+    //let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
+    //    println!("Error loading WR tables: {:?}", e);
+    //    Vec::new()
+    //});
+    //
+    //let targets_table = io::load_targets_table().unwrap_or_else(|e| {
+    //    println!("Error loading targets tables: {:?}", e);
+    //    Vec::new()
+    //});
 
     let html = html::index();
 
@@ -132,19 +133,15 @@ fn main() {
                         let ascending: bool =
                             serde_json::from_value(arg["ascending"].clone()).unwrap();
                         let param: String = serde_json::from_value(arg["param"].clone()).unwrap();
-                        let sort_by = shared::get_sort_hint(&param, ascending);
-                        let data =
-                            shared::build_table_update_data(&wr_tables, &targets_table, sort_by)
-                                .unwrap();
+                        let sort_by = controllers::get_sort_hint(&param, ascending);
+
+                        let data = controllers::build_table_update_data(&model, sort_by).unwrap();
                         update_view(webview, "table", data);
                     }
                     "level" => {
                         let level: i32 = serde_json::from_value(arg["level"].clone()).unwrap();
-                        let data = shared::get_level_update_data(
-                            &wr_tables,
-                            &targets_table[(level - 1) as usize],
-                            level,
-                        ).unwrap();
+
+                        let data = controllers::get_level_update_data(&model, level).unwrap();
                         update_view(webview, "level", data);
                     }
                     v => println!("View in update request not recognised: {}", v),
