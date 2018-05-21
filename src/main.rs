@@ -60,6 +60,9 @@ Worst differences to see where need to improve a lot
 Graph for tt
 */
 
+mod controllers;
+mod model;
+
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);

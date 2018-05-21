@@ -5,6 +5,19 @@ use elma::Time;
 use failure::Error;
 use shared::{Targets, WR}; //DataRow
 
+pub fn load_wr_tables() -> Result<Vec<WR>, Error> {
+    Ok(csv::Reader::from_path("wr-stats_tables.csv")?
+        .records()
+        .map(|r| r.unwrap())
+        .map(|row| WR {
+            table: row[0].parse::<i32>().unwrap(),
+            lev: row[1].parse::<i32>().unwrap(),
+            time: Time::from(&row[2]),
+            kuski: row[3].to_string(),
+        })
+        .collect())
+}
+
 pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
     Ok(csv::Reader::from_path("wr-stats_targets.csv")?
         .records()
@@ -17,19 +30,6 @@ pub fn load_targets_table() -> Result<Vec<Targets>, Error> {
             good: Time::from(&row[4]),
             ok: Time::from(&row[5]),
             beginner: Time::from(&row[6]),
-        })
-        .collect())
-}
-
-pub fn load_wr_tables() -> Result<Vec<WR>, Error> {
-    Ok(csv::Reader::from_path("wr-stats_tables.csv")?
-        .records()
-        .map(|r| r.unwrap())
-        .map(|row| WR {
-            table: row[0].parse::<i32>().unwrap(),
-            lev: row[1].parse::<i32>().unwrap(),
-            time: Time::from(&row[2]),
-            kuski: row[3].to_string(),
         })
         .collect())
 }
