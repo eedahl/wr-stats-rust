@@ -60,7 +60,6 @@ Graph for tt
 
 mod controllers;
 mod model;
-
 use model::Model;
 
 fn main() {
@@ -72,20 +71,88 @@ fn main() {
     });
 
     let mut model = Model::new().expect("Could not create model.");
-    model.update_pr_table().expect("Could not update model.");
+    //PR(SortOrder),
+    //DiffToPrevWR(SortOrder),
+    //DiffToNextWR(SortOrder),
+    //DiffToNextTarget(SortOrder),
+    //LevelNum(SortOrder),
+    //Table(SortOrder),
+    use shared::SortBy;
+    use shared::SortOrder;
 
-    //let wr_tables = io::load_wr_tables().unwrap_or_else(|e| {
-    //    println!("Error loading WR tables: {:?}", e);
-    //    Vec::new()
-    //});
-    //
-    //let targets_table = io::load_targets_table().unwrap_or_else(|e| {
-    //    println!("Error loading targets tables: {:?}", e);
-    //    Vec::new()
-    //});
-
+    let now2 = std::time::SystemTime::now();
+    {
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Ascending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(
+            &model,
+            SortBy::DiffToPrevWR(SortOrder::Ascending),
+        ).unwrap();
+        controllers::build_table_update_data_json_sort(
+            &model,
+            SortBy::DiffToNextWR(SortOrder::Ascending),
+        ).unwrap();
+        controllers::build_table_update_data_json_sort(
+            &model,
+            SortBy::DiffToNextTarget(SortOrder::Ascending),
+        ).unwrap();
+        controllers::build_table_update_data_json_sort(
+            &model,
+            SortBy::LevelNum(SortOrder::Ascending),
+        ).unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::Table(SortOrder::Ascending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Descending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Descending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Descending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Descending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Descending))
+            .unwrap();
+        controllers::build_table_update_data_json_sort(&model, SortBy::PR(SortOrder::Descending))
+            .unwrap();
+    }
+    match now2.elapsed() {
+        Ok(elapsed) => {
+            println!("Loop 2: {:?}", elapsed);
+        }
+        Err(e) => {
+            println!("Error: {:?}", e);
+        }
+    }
+    let now1 = std::time::SystemTime::now();
+    {
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Ascending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::DiffToPrevWR(SortOrder::Ascending))
+            .unwrap();
+        controllers::build_table_update_data(&model, SortBy::DiffToNextWR(SortOrder::Ascending))
+            .unwrap();
+        controllers::build_table_update_data(
+            &model,
+            SortBy::DiffToNextTarget(SortOrder::Ascending),
+        ).unwrap();
+        controllers::build_table_update_data(&model, SortBy::LevelNum(SortOrder::Ascending))
+            .unwrap();
+        controllers::build_table_update_data(&model, SortBy::Table(SortOrder::Ascending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Descending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Descending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Descending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Descending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Descending)).unwrap();
+        controllers::build_table_update_data(&model, SortBy::PR(SortOrder::Descending)).unwrap();
+    }
+    match now1.elapsed() {
+        Ok(elapsed) => {
+            println!("Loop 1: {:?}", elapsed);
+        }
+        Err(e) => {
+            println!("Error: {:?}", e);
+        }
+    }
     let html = html::index();
-
     let size = (1000, 1000);
     let resizable = true;
     let debug = true;

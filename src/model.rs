@@ -1,10 +1,6 @@
 extern crate csv;
 extern crate elma;
-// * wr_tables
-// * targets
-// ? mut pr_table
 
-// * get wr tables from lev
 use elma::Time;
 use failure::Error;
 use shared::{DataRow, Targets, WR};
