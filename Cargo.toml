@@ -1,6 +1,6 @@
 [package]
 name = "wr-stats"
-version = "0.6.2-alpha"
+version = "0.6.3-alpha"
 authors = ["Eivind E. Dahl <eivind.dahl@gmail.com>"]
 build = "build.rs"
 

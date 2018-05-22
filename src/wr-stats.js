@@ -367,22 +367,41 @@ function formatRow(row) {
     var lev_number = row.lev_number;
     var lev_name = row.lev_name;
     var pr = row['pr'];
-    return "<tr id=\"lev-" + lev_number + "\"><td>" +
+    return "<tr id=\"lev-" + lev_number + "\"><td class=\"lev-td\">" +
         lev_number + ". " + lev_name +
         "</td><td class=\"" +
-        pr.class + "\">" + // * pr
+        pr.class + " pr-td\">" + // * pr
         formatTime(pr.time) +
         "</td>" +
-        formatTimeEntry(row['wr_beat'], pr.time) +
+        formatWrBeatEntry(row['wr_beat'], pr.time) +
         formatTimeEntry(row['wr_not_beat'], pr.time) +
         formatTimeEntry(row['target'], pr.time) +
         "</tr>"
 }
 
 // * Not very robust
+function formatWrBeatEntry(entry, pr) {
+    if (entry['time'] == 0) {
+        return "<td class=\"kuski-beat-td empty-td\">-</td>" +
+            "<td class=\"empty-td\">-</td>";
+    }
+    var kuskiTd = "";
+    if (entry['table'] != 0 && entry['table'] != null) {
+        kuskiTd = "<td class=\"kuski-beat-td\">" + entry['kuski'] + " (<em><strong>" +
+            entry['table'] + "</em></strong>)</td>";
+    }
+    var timeTd = "<td class=\"" + entry['class'] + "\">" +
+        formatTime(entry['time']) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr - entry['time']) +
+        "</em></strong>)</span></td>";
+
+    return kuskiTd + timeTd;
+}
+
 function formatTimeEntry(entry, pr) {
     if (entry['time'] == 0) {
-        return "<td>-</td><td>-</td>";
+        return "<td class=\"empty-td\">-</td><td class=\"empty-td\">-</td>";
     }
     var kuskiTd = "";
     if (entry['table'] != 0 && entry['table'] != null) {
@@ -396,7 +415,6 @@ function formatTimeEntry(entry, pr) {
         "</em></strong>)</span></td>";
 
     return kuskiTd + timeTd;
-
 }
 
 // * Footer

@@ -1,52 +1,82 @@
 html,
 body {
 	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-	font-size: 11px;
+	font-size: 13px;
 	color: #b8b8b8;
 	background-color: #404040;
 }
 
-.table-condensed>thead>tr>th,
-.table-condensed>tbody>tr>th,
-.table-condensed>tfoot>tr>th,
-.table-condensed>thead>tr>td,
-.table-condensed>tbody>tr>td,
-.table-condensed>tfoot>tr>td {
-	padding: 0px;
+/*
+1 px clumn border to left side of kuski beat and right side of pr column, same colour as the light gray text
+pr/level columns slightly lighter background
+PR     | |  Kuski Beat
+
+i would also think about adding just a single 1px border between WR beat and Kuski to beat, and between Target WR and Next target
+*/
+
+#wr-table {
+	width: 100%;
+	border-spacing: 0px;
 }
 
-.sort {
-	cursor: pointer;
-}
-
-.sort:hover {
+#wr-table tr {
+	padding: 0% 1%;
 	background-color: #303340;
 }
 
-.table {
-	color: #b8b8b8;
+#wr-table th,
+#wr-table td {
+	padding: 0px 10px;
 }
 
-.table tr {
-	padding: 0%;
-	margin: 0%;
+#wr-table .sort {
+	cursor: pointer;
+}
+
+#wr-table .sort {
+	background-color: #dddddd;
+}
+
+#wr-table .sort:hover {
+	background-color: #304444;
+}
+
+#wr-table .pr-td,
+#wr-table .lev-td {
+	background-color: #303030;
+}
+
+#wr-table>tbody tr:nth-child(even) {
+	background-color: #404040;
+}
+
+#wr-table>tbody td.pr-td {
+	border-right: 1px solid #b8b8b8;
+	margin-right: 2px;
+}
+
+#wr-table>tbody td.kuski-beat-td {
+	border-left: 1px solid #b8b8b8;
+	margin-left: 2px;
+}
+
+#wr-table>tbody tr:hover,
+#wr-table>tbody tr>.pr-td:hover,
+#wr-table>tbody tr>.lev-td:hover {
+	background-color: #666666;
+}
+
+#wr-table>tbody tr:nth-of-type(even) {
+	background-color: #404040;
 }
 
 .diff {
 	color: #b9b9b9;
-	align-content: right;
+	float: right;
 }
 
-tr button {
-	display: block;
-}
-
-#tt_table tr {
-	text-align: center;
-}
-
-tr:nth-child(even) {
-	background-color: #404040;
+#wr-table .empty-td {
+	padding-left: 35px;
 }
 
 .wr {

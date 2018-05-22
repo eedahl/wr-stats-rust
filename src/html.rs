@@ -7,7 +7,6 @@ r#"
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        {bootstrap}
         {c3_styles}
         {styles}
     </head>
@@ -29,7 +28,8 @@ r#"
     </body>
 </html>
 "#,     
-        bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
+        //{bootstrap}
+        //bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
         d3_script = include_str!("d3/d3.min.js"),
         c3_styles = inline_style(include_str!("c3-0.6.0/c3.css")),
         c3_script = inline_script(include_str!("c3-0.6.0/c3.min.js")),
@@ -42,7 +42,7 @@ r#"
 pub fn table_view() -> String {
     format!(
 r#"
-<table id="wr-table" class="table table-sm table-condensed table-dark table-striped table-hover thead-dark">
+<table id="wr-table">
     <thead>
         <tr>
             <th scope="col" id="lev" class="sort">Level</th>

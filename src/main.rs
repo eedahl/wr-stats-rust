@@ -34,6 +34,7 @@ use web_view::WebView;
 // ? and a horizontal line showing your current time
 // ? an alternative would be a header with "Overview" and "Additional stats" that lets you
 // ? click between the table and additional stats like different tts and table counts
+
 /*
 ? ideas for data
 TT of current WRs

@@ -7,7 +7,7 @@
 # Executables
 *.exe
 
-/potential_js_libs/
+/potential_libs/
 /div/
 /dist/
 
