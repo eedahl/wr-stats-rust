@@ -34,15 +34,15 @@ i would also think about adding just a single 1px border between WR beat and Kus
 }
 
 #wr-table .sort {
-	background-color: #dddddd;
+	background-color: #666666;
 }
 
 #wr-table .sort:hover {
 	background-color: #304444;
 }
 
-#wr-table .pr-td,
-#wr-table .lev-td {
+.pr-td,
+.lev-td {
 	background-color: #303030;
 }
 
@@ -64,10 +64,6 @@ i would also think about adding just a single 1px border between WR beat and Kus
 #wr-table>tbody tr>.pr-td:hover,
 #wr-table>tbody tr>.lev-td:hover {
 	background-color: #666666;
-}
-
-#wr-table>tbody tr:nth-of-type(even) {
-	background-color: #404040;
 }
 
 .diff {

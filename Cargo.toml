@@ -16,6 +16,7 @@ reqwest = "*"
 serde_derive = "*"
 serde_json = "*"
 serde = "*"
+maud = "*"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = { git = "https://github.com/mxre/winres" }

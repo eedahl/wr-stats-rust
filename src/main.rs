@@ -74,7 +74,7 @@ fn main() {
     let mut model = Model::new().expect("Could not create model.");
 
     let html = html::index();
-    let size = (1000, 1000);
+    let size = (1000, 900);
     let resizable = true;
     let debug = true;
     let userdata = ();
