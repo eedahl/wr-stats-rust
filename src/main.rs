@@ -1,6 +1,9 @@
 //#![windows_subsystem = "windows"]
+#![feature(proc_macro)]
+#![feature(proc_macro_non_items)]
 extern crate elma;
 extern crate failure;
+extern crate maud;
 extern crate notify;
 extern crate web_view;
 #[macro_use]
@@ -9,9 +12,14 @@ extern crate serde;
 #[macro_use]
 extern crate serde_json;
 
+mod cont;
 mod html;
 mod http;
+mod model;
 mod shared;
+mod templ;
+
+use model::Model;
 
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
@@ -59,10 +67,6 @@ Worst differences to see where need to improve a lot
 Graph for tt
 */
 
-mod controllers;
-mod model;
-use model::Model;
-
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);
@@ -78,6 +82,17 @@ fn main() {
     let resizable = true;
     let debug = true;
     let userdata = ();
+
+    println!("{}", templ::diff(elma::Time(0)).into_string());
+    let time = elma::Time(0);
+    println!(
+        "{}",
+        templ::table_footer(time, elma::Time(0), elma::Time(0)).into_string()
+    );
+    println!(
+        "{}",
+        templ::table_footer(time, elma::Time(0), elma::Time(0)).into_string()
+    );
 
     web_view::run(
         "WR Stats",
@@ -123,7 +138,7 @@ fn main() {
 
                         model.update_pr_table().expect("Failed to update PR table.");
 
-                        let data = controllers::build_table_update_data(&model, sort_by).unwrap();
+                        let data = cont::build_table_update_data(&model, sort_by).unwrap();
                         update_view(webview, "table", data);
                     }
                     "level" => {
@@ -131,7 +146,7 @@ fn main() {
 
                         model.update_pr_table().expect("Failed to update PR table.");
 
-                        let data = controllers::get_level_update_data(&model, level).unwrap();
+                        let data = cont::get_level_update_data(&model, level).unwrap();
                         update_view(webview, "level", data);
                     }
                     v => println!("View in update request not recognised: {}", v),

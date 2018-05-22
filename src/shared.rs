@@ -57,3 +57,29 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
         &_ => LevelNum(Ascending),
     }
 }
+
+#[allow(dead_code)]
+pub fn time_to_diff_string(t: Time) -> String {
+    let (negative, h, m, s, hd) = t.to_parts();
+    let sign = if negative { "-" } else { "+" };
+
+    match (h, m, s, hd) {
+        (0, 0, 0, hd) => format!("{sign}0,{hd:02}", sign = sign, hd = hd),
+        (0, 0, s, hd) => format!("{sign}{s},{hd:02}", sign = sign, s = s, hd = hd),
+        (0, m, s, hd) => format!(
+            "{sign}{m}:{s:02},{hd:02}",
+            sign = sign,
+            m = m,
+            s = s,
+            hd = hd
+        ),
+        (h, m, s, hd) => format!(
+            "{sign}{h}:{m:02}:{s:02},{hd:02}",
+            sign = sign,
+            h = h,
+            m = m,
+            s = s,
+            hd = hd
+        ),
+    }
+}

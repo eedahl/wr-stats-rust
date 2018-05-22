@@ -269,7 +269,33 @@ pub fn build_table_update_data_(
         json!({"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0});
 
     sort_table_data_(&mut data, &model, sort_by).unwrap();
+    /*
+    html!{
+        tr{
+            td{
 
+            }
+            td{
+
+            }
+            td{
+
+            }
+            td{
+
+            }
+            td{
+
+            }
+            td{
+
+            }
+            td{
+
+            }
+        }
+    }
+*/
     // * Body
     let data_vec = data
         .iter()
@@ -305,7 +331,6 @@ pub fn build_table_update_data_(
 
     //sort_table_data(&mut data_vec, sort_by).expect("Error while sorting");
     let json_row_data: serde_json::Value = data_vec.into();
-
     Ok(json!({"rows": json_row_data, "footer": footer_json}))
 }
 
