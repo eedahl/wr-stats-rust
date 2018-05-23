@@ -10,7 +10,7 @@ window.onload = function () {
 var rpc = {
     request: function (arg) {
         if (arg['cmd'] != 'log') {
-            //this.log('request:', JSON.stringify(arg));
+            this.log('request:', JSON.stringify(arg));
         }
         window.external.invoke(JSON.stringify(arg));
     },
@@ -62,6 +62,12 @@ var views = {
                     'level': levelView.level
                 });
                 break;
+            case 'tt':
+                ttView.init();
+                rpc.updateView('tt', {
+                    'none': 'none'
+                });
+                break;
         }
     },
     updateView: function (arg) {
@@ -75,6 +81,9 @@ var views = {
                     case 'level':
                         levelView.update(obj['data']);
                         break;
+                    case 'tt':
+                        ttView.update(obj['data']);
+                        break;
                 }
             }
         } else {
@@ -84,6 +93,9 @@ var views = {
                     break;
                 case 'level':
                     rpc.updateView(this.activeView, levelView.getArg());
+                    break;
+                case 'tt':
+                    rpc.updateView(this.activeView, ttView.getArg());
                     break;
             }
         }
@@ -282,6 +294,117 @@ var levelView = {
     }
 }
 
+var ttView = {
+    init: function () {},
+    update: function (data) {
+        var target_tts = data['target_tts'];
+        var pr = data['pr_tt'];
+        var wr_tts = data['wr_tts'];
+        c3.generate({
+            bindto: '#chart',
+            data: {
+                columns: [
+                    ['TTs'].concat(wr_tts)
+                ],
+            },
+            axis: {
+                x: {
+                    label: {
+                        // text: 'Level ' + level.toString(),
+                        // position: 'outer-left'
+                    },
+                    tick: {
+                        fit: true,
+                        count: 20,
+                        format: function (d) {
+                            return Math.round(d);
+                        }
+                    },
+                },
+                y: {
+                    max: pr > wr_tts[0] ? Math.ceil(pr) : Math.ceil(wr_tts[0]),
+                    label: {
+                        text: 'TTs',
+                        position: 'outer-middle'
+                    },
+                    tick: {
+                        fit: true,
+                        format: formatTimeShort
+                    }
+                },
+            },
+            point: {
+                show: false
+            },
+            size: {
+                // width: 768,
+                height: 900,
+            },
+            padding: {
+                right: 90,
+            },
+            grid: {
+                x: {
+                    show: false
+                },
+                y: {
+                    show: false,
+                    lines: [{
+                            value: pr,
+                            text: 'PR ' + formatTimeShort(pr),
+                            position: 'left'
+                        },
+                        {
+                            value: target_tts.godlike,
+                            text: 'Godlike ' + formatTimeShort(target_tts.godlike),
+                            class: 'godlike'
+                        },
+                        {
+                            value: target_tts.legendary,
+                            text: 'Legendary ' + formatTimeShort(target_tts.legendary),
+                            class: 'legendary'
+                        },
+                        {
+                            value: target_tts.world_class,
+                            text: 'World class ' + formatTimeShort(target_tts.world_class),
+                            class: 'world_class'
+                        },
+                        {
+                            value: target_tts.professional,
+                            text: 'Professional ' + formatTimeShort(target_tts.professional),
+                            class: 'professional'
+                        },
+                        {
+                            value: target_tts.good,
+                            text: 'Good ' + formatTimeShort(target_tts.good),
+                            class: 'good'
+                        },
+                        {
+                            value: target_tts.ok,
+                            text: 'Ok ' + formatTimeShort(target_tts.ok),
+                            class: 'ok'
+                        },
+                        {
+                            value: target_tts.beginner,
+                            text: 'Beginner',
+                            class: 'beginner'
+                        },
+                    ]
+                }
+            },
+            zoom: {
+                enabled: true,
+                rescale: true
+            }
+        });
+    },
+    getArg: function () {
+        return {
+            'none': 'none'
+        };
+    }
+}
+
 var util = {
     range: function (i) {
         return Array.apply(null, Array(i)).map(function (_, j) {
@@ -421,24 +544,27 @@ function formatTimeEntry(entry, pr) {
 // * {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
 function formatFooter(footerData) {
     var p_tt = footerData['p_tt'];
+    var p_tt_class = footerData['p_tt_class'];
     var target_wr_tt = footerData['target_wr_tt'];
+    var target_wr_tt_class = footerData['target_wr_tt_class'];
     var target_tt = footerData['target_tt'];
+    var target_tt_class = footerData['target_tt_class'];
     return " \
     <tr> \
         <td><\/td> \
-        <td id=\"p_tt\" class=\"tt\">" +
+        <td id=\"p_tt\" class=\"tt " + p_tt_class + "\">" +
         formatTime(p_tt) +
         "<\/td><td><\/td><td><\/td>" +
-        "<td id=\"target_wr_tt\" class=\"tt\">" +
+        "<td id=\"target_wr_tt\" class=\"tt " + target_wr_tt_class + "\">" +
         formatTime(target_wr_tt) +
-        " (<em><strong>" +
+        " <span class=\"diff\">(<em><strong>" +
         formatTimeDiff(p_tt - target_wr_tt) +
-        "<\/em><\/strong>)<\/td><td><\/td><td>" +
+        "<\/em><\/strong>)</span><\/td><td><\/td>" +
+        "<td id=\"target_tt\" class=\"tt " + target_tt_class + "\">" +
         formatTime(target_tt) +
-        " (<em><strong>" +
+        " <span class=\"diff\">(<em><strong>" +
         formatTimeDiff(p_tt - target_tt) +
-        "</em></strong>) \
-        <\/td> \
+        "</em></strong>)</span><\/td> \
     <\/tr>"
 }
 

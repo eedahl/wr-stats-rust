@@ -1,6 +1,7 @@
 use elma::Time;
+use std::ops::Add;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Targets {
     pub godlike: Time,
     pub legendary: Time,
@@ -9,6 +10,22 @@ pub struct Targets {
     pub good: Time,
     pub ok: Time,
     pub beginner: Time,
+}
+
+impl Add for Targets {
+    type Output = Targets;
+
+    fn add(self, other: Targets) -> Targets {
+        Targets {
+            godlike: self.godlike + other.godlike,
+            legendary: self.legendary + other.legendary,
+            world_class: self.world_class + other.world_class,
+            professional: self.professional + other.professional,
+            good: self.good + other.good,
+            ok: self.ok + other.ok,
+            beginner: self.beginner + other.beginner,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

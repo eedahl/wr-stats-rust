@@ -3,7 +3,7 @@ extern crate elma;
 
 use elma::Time;
 use failure::Error;
-use shared::{DataRow, Targets, WR};
+use shared::{Targets, WR};
 
 pub struct Model {
     wr_tables: Vec<WR>,
@@ -35,39 +35,13 @@ impl Model {
 
         Ok(())
     }
-}
 
-pub trait ModelSelects {
-    fn compute_tts(&self, drs: &[DataRow]) -> (Time, Time);
-    fn collect_last_wr_table(&self) -> Vec<WR>;
-    fn collect_current_wrs(&self) -> Vec<Time>;
-    fn collect_wrs_for_lev(&self, level: usize) -> Vec<i32>;
-    fn get_current_wr(&self, level: usize) -> Time;
-    fn get_pr(&self, level: usize) -> Time;
-    fn get_targets(&self, level: usize) -> &Targets;
-    fn get_time_class(&self, time: &Time, level: usize) -> String;
-    fn get_next_target(&self, time: &Time, level: usize) -> Time;
-    fn get_last_wr_beat(&self, time: &Time, level: usize) -> Option<&WR>;
-    fn get_first_wr_not_beat(&self, time: &Time, level: usize) -> Option<&WR>;
-    fn get_targets_tt(&self) -> Time;
-}
-
-impl ModelSelects for Model {
-    fn compute_tts(&self, drs: &[DataRow]) -> (Time, Time) {
-        drs.iter().fold((Time(0), Time(0)), |acc, dr| {
-            (
-                acc.0 + dr.pr,
-                acc.1 + if let Some(wr) = dr.wr_not_beat.clone() {
-                    wr.time
-                } else {
-                    dr.pr
-                },
-            )
-        })
+    pub fn get_last_wr_table_num(&self) -> i32 {
+        self.wr_tables.iter().last().unwrap().table
     }
 
-    fn collect_last_wr_table(&self) -> Vec<WR> {
-        let last_table_num = self.wr_tables.iter().last().unwrap().table;
+    pub fn collect_last_wr_table(&self) -> Vec<WR> {
+        let last_table_num = self.get_last_wr_table_num();
         self.wr_tables
             .iter()
             .filter(|x| x.table == last_table_num)
@@ -75,7 +49,7 @@ impl ModelSelects for Model {
             .collect()
     }
 
-    fn collect_current_wrs(&self) -> Vec<Time> {
+    pub fn collect_current_wrs(&self) -> Vec<Time> {
         let cur_wrt = self.collect_last_wr_table();
         self.pr_table
             .iter()
@@ -84,7 +58,8 @@ impl ModelSelects for Model {
             .collect()
     }
 
-    fn collect_wrs_for_lev(&self, level: usize) -> Vec<i32> {
+    // ! inconsistent output
+    pub fn collect_wrs_for_lev(&self, level: usize) -> Vec<i32> {
         self.wr_tables
             .iter()
             .filter(|x| ((*x).lev - 1) as usize == level)
@@ -92,19 +67,19 @@ impl ModelSelects for Model {
             .collect::<Vec<_>>()
     }
 
-    fn get_pr(&self, level: usize) -> Time {
+    pub fn get_pr(&self, level: usize) -> Time {
         self.pr_table[level]
     }
 
-    fn get_current_wr(&self, level: usize) -> Time {
+    pub fn get_current_wr(&self, level: usize) -> Time {
         self.collect_current_wrs()[level]
     }
 
-    fn get_targets(&self, level: usize) -> &Targets {
+    pub fn get_targets(&self, level: usize) -> &Targets {
         &self.targets_table[level]
     }
 
-    fn get_time_class(&self, time: &Time, level: usize) -> String {
+    pub fn get_time_class(&self, time: &Time, level: usize) -> String {
         let targets = self.get_targets(level);
         let current_wr = self.get_current_wr(level);
         match *time {
@@ -120,7 +95,7 @@ impl ModelSelects for Model {
         }.to_string()
     }
 
-    fn get_next_target(&self, time: &Time, level: usize) -> Time {
+    pub fn get_next_target(&self, time: &Time, level: usize) -> Time {
         let targets = self.get_targets(level);
         let current_wr = self.get_current_wr(level);
         match *time {
@@ -136,28 +111,76 @@ impl ModelSelects for Model {
         }
     }
 
-    fn get_last_wr_beat(&self, time: &Time, level: usize) -> Option<&WR> {
+    pub fn get_last_wr_beat(&self, time: &Time, level: usize) -> Option<&WR> {
         self.wr_tables
             .iter()
             .filter(|wr| (wr.lev == level as i32 + 1) && (time <= &wr.time))
             .last()
     }
 
-    fn get_first_wr_not_beat(&self, time: &Time, level: usize) -> Option<&WR> {
+    pub fn get_first_wr_not_beat(&self, time: &Time, level: usize) -> Option<&WR> {
         self.wr_tables
             .iter()
             .filter(|wr| (wr.lev == level as i32 + 1) && !(time <= &wr.time))
             .nth(0)
     }
 
-    fn get_targets_tt(&self) -> Time {
+    pub fn get_next_targets_tt(&self) -> Time {
         self.pr_table
             .iter()
             .enumerate()
             .fold(Time(0), |acc, (i, pr)| acc + self.get_next_target(&pr, i))
     }
+
+    pub fn get_target_tts(&self) -> Targets {
+        let initial = Targets {
+            godlike: Time(0),
+            legendary: Time(0),
+            world_class: Time(0),
+            professional: Time(0),
+            good: Time(0),
+            ok: Time(0),
+            beginner: Time(0),
+        };
+        self.targets_table.iter().fold(initial, |acc, x| acc + *x)
+    }
+
+    pub fn get_tt_class(&self, tt: Time) -> String {
+        let target_tts = self.get_target_tts();
+        match tt {
+            tt if tt > target_tts.beginner => "unclassified",
+            tt if tt > target_tts.ok => "beginner",
+            tt if tt > target_tts.good => "ok",
+            tt if tt > target_tts.professional => "good",
+            tt if tt > target_tts.world_class => "professional",
+            tt if tt > target_tts.legendary => "world_class",
+            tt if tt > target_tts.godlike => "legendary",
+            _ => "godlike",
+        }.to_string()
+    }
+
+    pub fn get_pr_tt(&self) -> Time {
+        self.pr_table.iter().fold(Time(0), |acc, x| acc + *x)
+    }
+
+    pub fn get_wr_tts(&self) -> Vec<Time> {
+        let latest_table = self.get_last_wr_table_num();
+        (1..=latest_table)
+            .map(|i| {
+                self.wr_tables
+                    .iter()
+                    .filter(|x| x.table == i)
+                    .fold(Time(0), |acc, x| acc + x.time)
+            })
+            .collect()
+    }
 }
 
+////
+//
+//  Loading section
+//
+////
 fn load_wr_tables() -> Result<Vec<WR>, Error> {
     Ok(csv::Reader::from_path("wr-stats_tables.csv")?
         .records()

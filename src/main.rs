@@ -83,17 +83,6 @@ fn main() {
     let debug = true;
     let userdata = ();
 
-    println!("{}", templ::diff(elma::Time(0)).into_string());
-    let time = elma::Time(0);
-    println!(
-        "{}",
-        templ::table_footer(time, elma::Time(0), elma::Time(0)).into_string()
-    );
-    println!(
-        "{}",
-        templ::table_footer(time, elma::Time(0), elma::Time(0)).into_string()
-    );
-
     web_view::run(
         "WR Stats",
         web_view::Content::Html(html),
@@ -127,6 +116,7 @@ fn main() {
                 displayView { view } => match view.as_ref() {
                     "table" => display_view(webview, "table", &html::table_view()),
                     "level" => display_view(webview, "level", &html::level_view()),
+                    "tt" => display_view(webview, "tt", &html::tt_view()),
                     v => println!("View in display request not recognised: {}", v),
                 },
                 updateView { view, arg } => match view.as_ref() {
@@ -148,6 +138,12 @@ fn main() {
 
                         let data = cont::get_level_update_data(&model, level).unwrap();
                         update_view(webview, "level", data);
+                    }
+                    "tt" => {
+                        model.update_pr_table().expect("Failed to update PR table.");
+
+                        let data = cont::get_tt_update_data(&model).unwrap();
+                        update_view(webview, "tt", data);
                     }
                     v => println!("View in update request not recognised: {}", v),
                 },

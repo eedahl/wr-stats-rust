@@ -62,12 +62,23 @@ r#"
 "#)
 }
 
+// ! Table view
+pub fn tt_view() -> String {
+    format!(
+        r#"
+<h2>TT view</h2>
+<p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
+<div id="chart" class="container-fluid"></div>
+"#)
+}
+
 // ! Level view
 pub fn level_view() -> String {
     format!(
         r#"
 <h2>Level view</h2>
 <p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
+<p class="to-tt-view" onclick="rpc.request({{cmd: 'displayView', view: 'tt', }});">Go to TT view</p>
 <div id="chart" class="container-fluid"></div>
 "#)
 }
