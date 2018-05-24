@@ -45,7 +45,7 @@ pub fn table_footer(p_tt: Time, target_wr_tt: Time, target_tt: Time) -> Markup {
                 (target_wr_tt.to_string()) "" (diff(p_tt - target_wr_tt))
             }
             td
-            td class="tt" id="target_wr_tt" { 
+            td class="tt" id="target_tt" { 
                 (target_tt.to_string()) "" (diff(p_tt - target_tt))
             }
         }
@@ -55,8 +55,10 @@ pub fn table_footer(p_tt: Time, target_wr_tt: Time, target_tt: Time) -> Markup {
 #[allow(dead_code)]
 pub fn diff(diff: Time) -> Markup {
     html!({
-        "(" em {
-             strong { (shared::time_to_diff_string(diff)) }
-        } ")"
+        span class="diff" {
+            "(" em {
+                strong { (shared::time_to_diff_string(diff)) }
+            } ")"
+        }
     })
 }

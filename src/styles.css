@@ -14,9 +14,81 @@ PR     | |  Kuski Beat
 i would also think about adding just a single 1px border between WR beat and Kuski to beat, and between Target WR and Next target
 */
 
+#view {
+	align-content: center;
+	width: 100%;
+}
+
+/* navbar */
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #333;
+}
+
+li {
+	float: left;
+}
+
+li a,
+.dropbtn {
+	display: inline-block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+li a:hover,
+.dropdown:hover .dropbtn {
+	background-color: red;
+}
+
+li.dropdown {
+	display: inline-block;
+}
+
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: #f9f9f9;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
+}
+
+.dropdown-content a {
+	color: black;
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+	text-align: left;
+}
+
+.dropdown-content a:hover {
+	background-color: #f1f1f1
+}
+
+.dropdown:hover .dropdown-content {
+	display: block;
+}
+
+.active {
+	background-color: #4CAF50;
+	color: white;
+}
+
+/* end navbar */
+
 #wr-table {
 	width: 100%;
 	border-spacing: 0px;
+	border-collapse: collapse;
+	max-width: 1000px;
+	align-self: center;
 }
 
 #wr-table tr {
@@ -43,7 +115,7 @@ i would also think about adding just a single 1px border between WR beat and Kus
 
 .pr-td,
 .lev-td {
-	background-color: #303030;
+	background-color: #444444;
 }
 
 #wr-table>tbody tr:nth-child(even) {
@@ -52,12 +124,11 @@ i would also think about adding just a single 1px border between WR beat and Kus
 
 #wr-table>tbody td.pr-td {
 	border-right: 1px solid #b8b8b8;
-	margin-right: 2px;
 }
 
 #wr-table>tbody td.kuski-beat-td {
 	border-left: 1px solid #b8b8b8;
-	margin-left: 2px;
+	border-spacing: 3px 0px;
 }
 
 #wr-table>tbody tr:hover,
@@ -74,6 +145,8 @@ i would also think about adding just a single 1px border between WR beat and Kus
 #wr-table .empty-td {
 	padding-left: 35px;
 }
+
+/* Time styling */
 
 .wr {
 	color: #ff0000;
@@ -106,6 +179,8 @@ i would also think about adding just a single 1px border between WR beat and Kus
 .beginner {
 	color: #f3f5ca;
 }
+
+/* Graph styling */
 
 .c3 .c3-axis-x path,
 .c3 .c3-axis-x line {

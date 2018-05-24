@@ -42,7 +42,29 @@ use web_view::WebView;
 // ? and a horizontal line showing your current time
 // ? an alternative would be a header with "Overview" and "Additional stats" that lets you
 // ? click between the table and additional stats like different tts and table counts
-
+/*so have header of PR be a dropdown menu of like "PR, avg" etc and you choose what to display to compare against
+and then have a stat column where you choose like
+"wr stats"
+"top 10 table"
+"target times"
+but you click the target WR column to expand/collapse
+that's the functionality explanation, here's the new feature
+take the same idea, make the "PR" column clickable
+and expandong to(edited)
+http://stats.sshoyer.net/player.php?player=Haruhi
+top 10 table
+in same way as elmastats has it
+here's the part i haven't worked out
+reason for top 10 stats is
+so can compare to WR tables in same way as PR is currently
+ie
+what tables does my 10th time in int06 beat?
+what tables does my avg in int35 beat
+etc
+Also there used to be some interest long ago in TT of 2nd times in top 10, TT of 3rd times in top 10 etc.
+but afaik those programs to calculate it are gone
+can do on elmastats if coded ofc
+but may as well add to your program, if want*/
 /*
 ? ideas for data
 TT of current WRs
@@ -78,7 +100,7 @@ fn main() {
     let mut model = Model::new().expect("Could not create model.");
 
     let html = html::index();
-    let size = (1000, 900);
+    let size = (1000, 925);
     let resizable = true;
     let debug = true;
     let userdata = ();

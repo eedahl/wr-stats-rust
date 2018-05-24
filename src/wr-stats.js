@@ -189,6 +189,7 @@ var levelView = {
         var targets = data['targets'];
         var pr = data.pr;
         this.level = level;
+
         c3.generate({
             bindto: '#chart',
             data: {
@@ -227,7 +228,7 @@ var levelView = {
             },
             size: {
                 // width: 768,
-                height: 900,
+                height: 800,
             },
             padding: {
                 right: 90,
@@ -238,47 +239,7 @@ var levelView = {
                 },
                 y: {
                     show: false,
-                    lines: [{
-                            value: pr,
-                            text: 'PR ' + formatTimeShort(pr),
-                            position: 'left'
-                        },
-                        {
-                            value: targets.godlike,
-                            text: 'Godlike ' + formatTimeShort(targets.godlike),
-                            class: 'godlike'
-                        },
-                        {
-                            value: targets.legendary,
-                            text: 'Legendary ' + formatTimeShort(targets.legendary),
-                            class: 'legendary'
-                        },
-                        {
-                            value: targets.world_class,
-                            text: 'World class ' + formatTimeShort(targets.world_class),
-                            class: 'world_class'
-                        },
-                        {
-                            value: targets.professional,
-                            text: 'Professional ' + formatTimeShort(targets.professional),
-                            class: 'professional'
-                        },
-                        {
-                            value: targets.good,
-                            text: 'Good ' + formatTimeShort(targets.good),
-                            class: 'good'
-                        },
-                        {
-                            value: targets.ok,
-                            text: 'Ok ' + formatTimeShort(targets.ok),
-                            class: 'ok'
-                        },
-                        {
-                            value: targets.beginner,
-                            text: 'Beginner',
-                            class: 'beginner'
-                        },
-                    ]
+                    lines: getGridTargetLines(pr, targets)
                 }
             },
             zoom: {
@@ -338,7 +299,7 @@ var ttView = {
             },
             size: {
                 // width: 768,
-                height: 900,
+                height: 800,
             },
             padding: {
                 right: 90,
@@ -349,47 +310,7 @@ var ttView = {
                 },
                 y: {
                     show: false,
-                    lines: [{
-                            value: pr,
-                            text: 'PR ' + formatTimeShort(pr),
-                            position: 'left'
-                        },
-                        {
-                            value: target_tts.godlike,
-                            text: 'Godlike ' + formatTimeShort(target_tts.godlike),
-                            class: 'godlike'
-                        },
-                        {
-                            value: target_tts.legendary,
-                            text: 'Legendary ' + formatTimeShort(target_tts.legendary),
-                            class: 'legendary'
-                        },
-                        {
-                            value: target_tts.world_class,
-                            text: 'World class ' + formatTimeShort(target_tts.world_class),
-                            class: 'world_class'
-                        },
-                        {
-                            value: target_tts.professional,
-                            text: 'Professional ' + formatTimeShort(target_tts.professional),
-                            class: 'professional'
-                        },
-                        {
-                            value: target_tts.good,
-                            text: 'Good ' + formatTimeShort(target_tts.good),
-                            class: 'good'
-                        },
-                        {
-                            value: target_tts.ok,
-                            text: 'Ok ' + formatTimeShort(target_tts.ok),
-                            class: 'ok'
-                        },
-                        {
-                            value: target_tts.beginner,
-                            text: 'Beginner',
-                            class: 'beginner'
-                        },
-                    ]
+                    lines: getGridTargetLines(pr, target_tts)
                 }
             },
             zoom: {
@@ -403,6 +324,51 @@ var ttView = {
             'none': 'none'
         };
     }
+}
+
+function getGridTargetLines(pr, targets) {
+    return [{
+            value: pr,
+            text: 'PR ' + formatTimeShort(pr),
+            position: 'left'
+        },
+        {
+            value: targets.godlike,
+            text: 'Godlike ' + formatTimeShort(targets.godlike) + " (" + formatTimeDiff(pr - targets.godlike) +
+                ")",
+            class: 'godlike'
+        },
+        {
+            value: targets.legendary,
+            text: 'Legendary ' + formatTimeShort(targets.legendary) + " (" + formatTimeDiff(pr - targets.legendary) + ")",
+            class: 'legendary'
+        },
+        {
+            value: targets.world_class,
+            text: 'World class ' + formatTimeShort(targets.world_class) + " (" + formatTimeDiff(pr - targets.world_class) + ")",
+            class: 'world_class'
+        },
+        {
+            value: targets.professional,
+            text: 'Professional ' + formatTimeShort(targets.professional) + " (" + formatTimeDiff(pr - targets.professional) + ")",
+            class: 'professional'
+        },
+        {
+            value: targets.good,
+            text: 'Good ' + formatTimeShort(targets.good) + " (" + formatTimeDiff(pr - targets.good) + ")",
+            class: 'good'
+        },
+        {
+            value: targets.ok,
+            text: 'Ok ' + formatTimeShort(targets.ok) + " (" + formatTimeDiff(pr - targets.ok) + ")",
+            class: 'ok'
+        },
+        {
+            value: targets.beginner,
+            text: 'Beginner' + formatTimeShort(targets.beginner) + " (" + formatTimeDiff(pr - targets.beginner) + ")",
+            class: 'beginner'
+        },
+    ]
 }
 
 var util = {
@@ -567,13 +533,3 @@ function formatFooter(footerData) {
         "</em></strong>)</span><\/td> \
     <\/tr>"
 }
-
-/*
-function (p_tt, tt) {
-    return "<td id=\"target_wr_tt\" class=\"tt\">" +
-        formatTime(tt) +
-        " (<em><strong>" +
-        formatTimeDiff(p_tt - tt) +
-        "<\/em><\/strong>)<\/td>";
-}
-*/
