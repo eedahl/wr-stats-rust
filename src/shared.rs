@@ -29,6 +29,12 @@ impl Add for Targets {
 }
 
 #[derive(Debug, Clone)]
+pub struct ClassedTime {
+    pub time: Time,
+    pub class: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct WR {
     pub table: i32,
     pub lev: i32,

@@ -2,6 +2,7 @@ use elma::Time;
 use maud::html;
 use maud::Markup;
 use shared;
+use shared::ClassedTime;
 
 #[allow(dead_code)]
 pub struct Row {
@@ -34,20 +35,28 @@ pub fn table_row(row: &Row) -> Markup {
 }
 
 #[allow(dead_code)]
-pub fn table_footer(p_tt: Time, target_wr_tt: Time, target_tt: Time) -> Markup {
+pub fn table_footer(
+    p_tt: ClassedTime,
+    target_wr_tt: ClassedTime,
+    target_tt: ClassedTime,
+) -> String {
     html!({
         tr {
             td
-            td class="tt" id="p_tt" (p_tt.to_string())
+            td class={ "tt" " " (p_tt.class) } (p_tt.time.to_string())
             td
             td
-            td class="tt" id="target_wr_tt" { 
-                (target_wr_tt.to_string()) "" (diff(p_tt - target_wr_tt))
-            }
+            (time_td_with_diff(&target_wr_tt, p_tt.time))
             td
-            td class="tt" id="target_tt" { 
-                (target_tt.to_string()) "" (diff(p_tt - target_tt))
-            }
+            (time_td_with_diff(&target_tt, p_tt.time))
+        }
+    }).into_string()
+}
+
+pub fn time_td_with_diff(ct: &ClassedTime, t: Time) -> Markup {
+    html!({
+        td class={ "tt" " " (ct.class) } { 
+            (ct.time.to_string()) "" (diff(t - ct.time))
         }
     })
 }

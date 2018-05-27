@@ -3,7 +3,8 @@ use failure::Error;
 use serde_json;
 
 use model::Model;
-use shared::{DataRow, SortBy, SortOrder, WR};
+use shared::{ClassedTime, DataRow, SortBy, SortOrder, WR};
+use templ;
 
 #[allow(dead_code)]
 pub fn get_tt_update_data(model: &Model) -> Result<serde_json::Value, Error> {
@@ -53,18 +54,23 @@ pub fn build_table_update_data(model: &Model, sort_by: SortBy) -> Result<serde_j
 	let target_tt_class = model.get_tt_class(target_tt);
 	let target_wr_tt_class = model.get_tt_class(target_wr_tt);
 
-	let footer_json = json!({
-		"p_tt": p_tt.0,
-		"p_tt_class": p_tt_class,
-		"target_wr_tt": target_wr_tt.0,
-		"target_wr_tt_class": target_wr_tt_class,
-		"target_tt": target_tt.0,
-		"target_tt_class": target_tt_class
-	});
+	let footer = templ::table_footer(
+		ClassedTime {
+			time: p_tt,
+			class: p_tt_class.clone(),
+		},
+		ClassedTime {
+			time: target_wr_tt,
+			class: target_wr_tt_class.clone(),
+		},
+		ClassedTime {
+			time: target_tt,
+			class: target_wr_tt_class.clone(),
+		},
+	);
 
 	// * Body
-	let mut data_json = data
-		.iter()
+	let mut data_json = data.iter()
 		.map(
 			|DataRow {
 			     lev_number,
@@ -114,7 +120,7 @@ pub fn build_table_update_data(model: &Model, sort_by: SortBy) -> Result<serde_j
 	sort_table_data(&mut data_json, sort_by).expect("Error while sorting");
 	let json_row_data: serde_json::Value = data_json.into();
 
-	Ok(json!({"rows": json_row_data, "footer": footer_json}))
+	Ok(json!({"rows": json_row_data, "footer": footer}))
 }
 
 fn sort_table_data(data: &mut Vec<serde_json::Value>, sort_by: SortBy) -> Result<(), Error> {
@@ -302,8 +308,7 @@ pub fn build_table_update_data_(
 	sort_table_data_(&mut data, &model, sort_by).unwrap();
 
 	// * Body
-	let data_vec = data
-		.iter()
+	let data_vec = data.iter()
 		.map(
 			|DataRow {
 			     lev_number,

@@ -107,33 +107,33 @@ var tableView = {
     ascending: true,
     init: function () {
         var colSortHint = [{
-                'id': 'lev',
-                'hint': 'LevelNum'
-            },
-            {
-                'id': 'pr',
-                'hint': 'PR'
-            },
-            {
-                'id': 'wr-beat',
-                'hint': 'DiffToPrevWR'
-            },
-            {
-                'id': 'kuski-beat',
-                'hint': 'Table'
-            },
-            {
-                'id': 'target-wr',
-                'hint': 'DiffToNextWR'
-            },
-            {
-                'id': 'kuski-to-beat',
-                'hint': 'Table'
-            },
-            {
-                'id': 'target',
-                'hint': 'DiffToNextTarget'
-            },
+            'id': 'lev',
+            'hint': 'LevelNum'
+        },
+        {
+            'id': 'pr',
+            'hint': 'PR'
+        },
+        {
+            'id': 'wr-beat',
+            'hint': 'DiffToPrevWR'
+        },
+        {
+            'id': 'kuski-beat',
+            'hint': 'Table'
+        },
+        {
+            'id': 'target-wr',
+            'hint': 'DiffToNextWR'
+        },
+        {
+            'id': 'kuski-to-beat',
+            'hint': 'Table'
+        },
+        {
+            'id': 'target',
+            'hint': 'DiffToNextTarget'
+        },
         ];
         colSortHint.map(function (val) {
             document.getElementById(val.id).addEventListener("click", function () {
@@ -157,8 +157,8 @@ var tableView = {
         }, "");
 
         document.getElementById('table-body').innerHTML = rows;
-        var footer = formatFooter(data['footer']);
-        document.getElementById('table-footer').innerHTML = footer;
+        //var footer = formatFooter(data['footer']);
+        document.getElementById('table-footer').innerHTML = data['footer'];
 
         util.range(54).map(function (i) {
             document.getElementById('lev-' + (i + 1).toString())
@@ -182,7 +182,7 @@ var tableView = {
 var levelView = {
     level: 1,
     //chart: null,
-    init: function () {},
+    init: function () { },
     update: function (data) {
         var level = data['level'];
         var times = data['times'];
@@ -256,7 +256,7 @@ var levelView = {
 }
 
 var ttView = {
-    init: function () {},
+    init: function () { },
     update: function (data) {
         var target_tts = data['target_tts'];
         var pr = data['pr_tt'];
@@ -328,46 +328,46 @@ var ttView = {
 
 function getGridTargetLines(pr, targets) {
     return [{
-            value: pr,
-            text: 'PR ' + formatTimeShort(pr),
-            position: 'left'
-        },
-        {
-            value: targets.godlike,
-            text: 'Godlike ' + formatTimeShort(targets.godlike) + " (" + formatTimeDiff(pr - targets.godlike) +
-                ")",
-            class: 'godlike'
-        },
-        {
-            value: targets.legendary,
-            text: 'Legendary ' + formatTimeShort(targets.legendary) + " (" + formatTimeDiff(pr - targets.legendary) + ")",
-            class: 'legendary'
-        },
-        {
-            value: targets.world_class,
-            text: 'World class ' + formatTimeShort(targets.world_class) + " (" + formatTimeDiff(pr - targets.world_class) + ")",
-            class: 'world_class'
-        },
-        {
-            value: targets.professional,
-            text: 'Professional ' + formatTimeShort(targets.professional) + " (" + formatTimeDiff(pr - targets.professional) + ")",
-            class: 'professional'
-        },
-        {
-            value: targets.good,
-            text: 'Good ' + formatTimeShort(targets.good) + " (" + formatTimeDiff(pr - targets.good) + ")",
-            class: 'good'
-        },
-        {
-            value: targets.ok,
-            text: 'Ok ' + formatTimeShort(targets.ok) + " (" + formatTimeDiff(pr - targets.ok) + ")",
-            class: 'ok'
-        },
-        {
-            value: targets.beginner,
-            text: 'Beginner' + formatTimeShort(targets.beginner) + " (" + formatTimeDiff(pr - targets.beginner) + ")",
-            class: 'beginner'
-        },
+        value: pr,
+        text: 'PR ' + formatTimeShort(pr),
+        position: 'left'
+    },
+    {
+        value: targets.godlike,
+        text: 'Godlike ' + formatTimeShort(targets.godlike) + " (" + formatTimeDiff(pr - targets.godlike) +
+            ")",
+        class: 'godlike'
+    },
+    {
+        value: targets.legendary,
+        text: 'Legendary ' + formatTimeShort(targets.legendary) + " (" + formatTimeDiff(pr - targets.legendary) + ")",
+        class: 'legendary'
+    },
+    {
+        value: targets.world_class,
+        text: 'World class ' + formatTimeShort(targets.world_class) + " (" + formatTimeDiff(pr - targets.world_class) + ")",
+        class: 'world_class'
+    },
+    {
+        value: targets.professional,
+        text: 'Professional ' + formatTimeShort(targets.professional) + " (" + formatTimeDiff(pr - targets.professional) + ")",
+        class: 'professional'
+    },
+    {
+        value: targets.good,
+        text: 'Good ' + formatTimeShort(targets.good) + " (" + formatTimeDiff(pr - targets.good) + ")",
+        class: 'good'
+    },
+    {
+        value: targets.ok,
+        text: 'Ok ' + formatTimeShort(targets.ok) + " (" + formatTimeDiff(pr - targets.ok) + ")",
+        class: 'ok'
+    },
+    {
+        value: targets.beginner,
+        text: 'Beginner' + formatTimeShort(targets.beginner) + " (" + formatTimeDiff(pr - targets.beginner) + ")",
+        class: 'beginner'
+    },
     ]
 }
 
@@ -504,32 +504,4 @@ function formatTimeEntry(entry, pr) {
         "</em></strong>)</span></td>";
 
     return kuskiTd + timeTd;
-}
-
-// * Footer
-// * {"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0}
-function formatFooter(footerData) {
-    var p_tt = footerData['p_tt'];
-    var p_tt_class = footerData['p_tt_class'];
-    var target_wr_tt = footerData['target_wr_tt'];
-    var target_wr_tt_class = footerData['target_wr_tt_class'];
-    var target_tt = footerData['target_tt'];
-    var target_tt_class = footerData['target_tt_class'];
-    return " \
-    <tr> \
-        <td><\/td> \
-        <td id=\"p_tt\" class=\"tt " + p_tt_class + "\">" +
-        formatTime(p_tt) +
-        "<\/td><td><\/td><td><\/td>" +
-        "<td id=\"target_wr_tt\" class=\"tt " + target_wr_tt_class + "\">" +
-        formatTime(target_wr_tt) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(p_tt - target_wr_tt) +
-        "<\/em><\/strong>)</span><\/td><td><\/td>" +
-        "<td id=\"target_tt\" class=\"tt " + target_tt_class + "\">" +
-        formatTime(target_tt) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(p_tt - target_tt) +
-        "</em></strong>)</span><\/td> \
-    <\/tr>"
 }
