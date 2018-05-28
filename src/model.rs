@@ -111,16 +111,18 @@ impl Model {
         }
     }
 
-    pub fn get_last_wr_beat(&self, time: &Time, level: usize) -> Option<&WR> {
+    pub fn get_last_wr_beat(&self, time: &Time, level: usize) -> Option<WR> {
         self.wr_tables
             .iter()
+            .cloned()
             .filter(|wr| (wr.lev == level as i32 + 1) && (time <= &wr.time))
             .last()
     }
 
-    pub fn get_first_wr_not_beat(&self, time: &Time, level: usize) -> Option<&WR> {
+    pub fn get_first_wr_not_beat(&self, time: &Time, level: usize) -> Option<WR> {
         self.wr_tables
             .iter()
+            .cloned()
             .filter(|wr| (wr.lev == level as i32 + 1) && !(time <= &wr.time))
             .nth(0)
     }

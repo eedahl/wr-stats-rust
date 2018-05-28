@@ -148,15 +148,15 @@ var tableView = {
         });
     },
     update: function (data) {
-        var row_data = data['rows'];
+        //var row_data = data['rows'];
 
-        var rows = row_data.map(function (row) {
-            return formatRow(row)
-        }).reduce(function (acc, next) {
-            return acc + next;
-        }, "");
+        //var rows = row_data.map(function (row) {
+        //    return formatRow(row)
+        //}).reduce(function (acc, next) {
+        //    return acc + next;
+        //}, "");
 
-        document.getElementById('table-body').innerHTML = rows;
+        document.getElementById('table-body').innerHTML = data['rows'];
         //var footer = formatFooter(data['footer']);
         document.getElementById('table-footer').innerHTML = data['footer'];
 
@@ -442,66 +442,4 @@ function formatTimeDiff(time) {
     str = str + ((min > 0) ? lz(sec) : sec) + ',';
     str = str + lz(hdrs);
     return str;
-}
-
-// ! HTML generation
-// * Row
-// * {"lev_number": lev_number,
-// * "lev_name": lev_name,
-// * "pr" : {"time": pr, "class": pr_class},
-// * "wr_beat": { "time": time_b, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
-// * "wr_not_beat": { "time": time_nb, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
-// * "target": {"time": target, "class": target_class}}
-function formatRow(row) {
-    var lev_number = row.lev_number;
-    var lev_name = row.lev_name;
-    var pr = row['pr'];
-    return "<tr id=\"lev-" + lev_number + "\"><td class=\"lev-td\">" +
-        lev_number + ". " + lev_name +
-        "</td><td class=\"" +
-        pr.class + " pr-td\">" + // * pr
-        formatTime(pr.time) +
-        "</td>" +
-        formatWrBeatEntry(row['wr_beat'], pr.time) +
-        formatTimeEntry(row['wr_not_beat'], pr.time) +
-        formatTimeEntry(row['target'], pr.time) +
-        "</tr>"
-}
-
-// * Not very robust
-function formatWrBeatEntry(entry, pr) {
-    if (entry['time'] == 0) {
-        return "<td class=\"kuski-beat-td empty-td\">-</td>" +
-            "<td class=\"empty-td\">-</td>";
-    }
-    var kuskiTd = "";
-    if (entry['table'] != 0 && entry['table'] != null) {
-        kuskiTd = "<td class=\"kuski-beat-td\">" + entry['kuski'] + " (<em><strong>" +
-            entry['table'] + "</em></strong>)</td>";
-    }
-    var timeTd = "<td class=\"" + entry['class'] + "\">" +
-        formatTime(entry['time']) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(pr - entry['time']) +
-        "</em></strong>)</span></td>";
-
-    return kuskiTd + timeTd;
-}
-
-function formatTimeEntry(entry, pr) {
-    if (entry['time'] == 0) {
-        return "<td class=\"empty-td\">-</td><td class=\"empty-td\">-</td>";
-    }
-    var kuskiTd = "";
-    if (entry['table'] != 0 && entry['table'] != null) {
-        kuskiTd = "<td>" + entry['kuski'] + " (<em><strong>" +
-            entry['table'] + "</em></strong>)</td>";
-    }
-    var timeTd = "<td class=\"" + entry['class'] + "\">" +
-        formatTime(entry['time']) +
-        " <span class=\"diff\">(<em><strong>" +
-        formatTimeDiff(pr - entry['time']) +
-        "</em></strong>)</span></td>";
-
-    return kuskiTd + timeTd;
 }

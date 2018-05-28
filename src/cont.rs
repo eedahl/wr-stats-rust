@@ -3,8 +3,9 @@ use failure::Error;
 use serde_json;
 
 use model::Model;
-use shared::{ClassedTime, DataRow, SortBy, SortOrder, WR};
+use shared::{SortBy, SortOrder, WR};
 use templ;
+use templ::Row;
 
 #[allow(dead_code)]
 pub fn get_tt_update_data(model: &Model) -> Result<serde_json::Value, Error> {
@@ -43,10 +44,9 @@ pub fn get_level_update_data(model: &Model, level: i32) -> Result<serde_json::Va
 }
 
 pub fn build_table_update_data(model: &Model, sort_by: SortBy) -> Result<serde_json::Value, Error> {
-	let data = populate_table_data(&model);
+	let mut data = populate_table_data(&model);
 
 	// * Footer
-	// ! refactor
 	let (p_tt, target_wr_tt) = compute_tts(&data);
 	let target_tt = model.get_next_targets_tt();
 
@@ -55,138 +55,22 @@ pub fn build_table_update_data(model: &Model, sort_by: SortBy) -> Result<serde_j
 	let target_wr_tt_class = model.get_tt_class(target_wr_tt);
 
 	let footer = templ::table_footer(
-		ClassedTime {
-			time: p_tt,
-			class: p_tt_class.clone(),
-		},
-		ClassedTime {
-			time: target_wr_tt,
-			class: target_wr_tt_class.clone(),
-		},
-		ClassedTime {
-			time: target_tt,
-			class: target_wr_tt_class.clone(),
-		},
+		p_tt,
+		&p_tt_class,
+		target_wr_tt,
+		&target_wr_tt_class,
+		target_tt,
+		&target_tt_class,
 	);
 
 	// * Body
-	let mut data_json = data.iter()
-		.map(
-			|DataRow {
-			     lev_number,
-			     lev_name,
-			     pr,
-			     wr_beat,
-			     wr_not_beat,
-			 }| {
-				let lev_idx = (lev_number - 1) as usize;
-				let pr_class = model.get_time_class(pr, lev_idx);
-				let target = model.get_next_target(pr, lev_idx);
-				let target_class = if target != Time(0) {
-					model.get_time_class(&target, lev_idx)
-				} else {
-					"".to_owned()
-				};
-				let (table_b, _, time_b, kuski_b) = wr_to_values(wr_beat);
-				let wr_b_class = model.get_time_class(&time_b, lev_idx);
-				let (table_nb, _, time_nb, kuski_nb) = wr_to_values(wr_not_beat);
-				let wr_nb_class = model.get_time_class(&time_nb, lev_idx);
-				json!({
-					"lev_number": lev_number,
-					"lev_name": lev_name,
-					"pr" : {
-						"time": pr.0, "class": pr_class
-					},
-					"wr_beat": { 
-						"time": time_b.0,
-						"class": wr_b_class,
-						"table": table_b,
-						"kuski": kuski_b 
-					},
-					"wr_not_beat": { 
-						"time": time_nb.0,
-						"class": wr_nb_class,
-						"table": table_nb,
-						"kuski": kuski_nb 
-					},
-					"target": {
-						"time": target.0,
-						"class": target_class}
-					})
-			},
-		)
-		.collect::<Vec<serde_json::Value>>();
+	sort_table_data(&mut data, &model, sort_by)?;
+	let table_rows = templ::table_body(&data);
 
-	sort_table_data(&mut data_json, sort_by).expect("Error while sorting");
-	let json_row_data: serde_json::Value = data_json.into();
-
-	Ok(json!({"rows": json_row_data, "footer": footer}))
+	Ok(json!({"rows": table_rows, "footer": footer}))
 }
 
-fn sort_table_data(data: &mut Vec<serde_json::Value>, sort_by: SortBy) -> Result<(), Error> {
-	use serde_json::from_value;
-	use shared::SortBy::{DiffToNextTarget, DiffToNextWR, DiffToPrevWR, LevelNum, Table, PR};
-	use shared::SortOrder::{Ascending, Descending};
-	match sort_by {
-		Table(ord) => data.sort_by(|x, y| {
-			let table1: i32 = from_value(x["wr_beat"]["table"].clone()).unwrap();
-			let table2: i32 = from_value(y["wr_beat"]["table"].clone()).unwrap();
-			match ord {
-				Ascending => table1.cmp(&table2),
-				Descending => table2.cmp(&table1),
-			}
-		}),
-		PR(ord) => data.sort_by(|x, y| {
-			let pr1: i32 = from_value(x["pr"]["time"].clone()).unwrap();
-			let pr2: i32 = from_value(y["pr"]["time"].clone()).unwrap();
-			match ord {
-				Ascending => pr1.cmp(&pr2),
-				Descending => pr2.cmp(&pr1),
-			}
-		}),
-		DiffToNextTarget(ord) => data.sort_by(|x, y| {
-			let pr1: i32 = from_value(x["pr"]["time"].clone()).unwrap();
-			let tar1: i32 = from_value(x["target"]["time"].clone()).unwrap();
-			let pr2: i32 = from_value(y["pr"]["time"].clone()).unwrap();
-			let tar2: i32 = from_value(y["target"]["time"].clone()).unwrap();
-			match ord {
-				Ascending => (pr1 - tar1).cmp(&(pr2 - tar2)),
-				Descending => (pr2 - tar2).cmp(&(pr1 - tar1)),
-			}
-		}),
-		DiffToPrevWR(ord) => data.sort_by(|x, y| {
-			let pr1: i32 = from_value(x["pr"]["time"].clone()).unwrap();
-			let wr1: i32 = from_value(x["wr_beat"]["time"].clone()).unwrap();
-			let pr2: i32 = from_value(y["pr"]["time"].clone()).unwrap();
-			let wr2: i32 = from_value(y["wr_beat"]["time"].clone()).unwrap();
-			match ord {
-				Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
-				Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
-			}
-		}),
-		DiffToNextWR(ord) => data.sort_by(|x, y| {
-			let pr1: i32 = from_value(x["pr"]["time"].clone()).unwrap();
-			let wr1: i32 = from_value(x["wr_not_beat"]["time"].clone()).unwrap();
-			let pr2: i32 = from_value(y["pr"]["time"].clone()).unwrap();
-			let wr2: i32 = from_value(y["wr_not_beat"]["time"].clone()).unwrap();
-			match ord {
-				Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
-				Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
-			}
-		}),
-		LevelNum(ord) => match ord {
-			Ascending => {}
-			Descending => data.sort_by(|x, y| {
-				let lev_num1: i32 = serde_json::from_value(x["lev_number"].clone()).unwrap();
-				let lev_num2: i32 = serde_json::from_value(y["lev_number"].clone()).unwrap();
-				lev_num2.cmp(&lev_num1)
-			}),
-		},
-	}
-	Ok(())
-}
-
-pub fn populate_table_data(model: &Model) -> Vec<DataRow> {
+pub fn populate_table_data(model: &Model) -> Vec<Row> {
 	let level_names = vec![
 		"Warm Up",
 		"Flat Track",
@@ -248,23 +132,44 @@ pub fn populate_table_data(model: &Model) -> Vec<DataRow> {
 		.iter()
 		.enumerate()
 		.map(|(i, lev_name)| {
-			let level = i as i32 + 1;
+			let lev_number = i as i32 + 1;
 			let pr = model.get_pr(i);
-			let last_wr_beat = model.get_last_wr_beat(&pr, i);
-			let first_wr_not_beat = model.get_first_wr_not_beat(&pr, i);
+			let pr_class = model.get_time_class(&pr, i);
 
-			DataRow {
-				lev_number: level,
+			// ! deal with options
+			let last_wr_beat = model.get_last_wr_beat(&pr, i);
+			let (_, kuski_beat, kuski_beat_table, wr_beat) = wr_to_values(&last_wr_beat);
+			let wr_beat_class = model.get_time_class(&wr_beat, i);
+
+			let first_wr_not_beat = model.get_first_wr_not_beat(&pr, i);
+			let (_, kuski_not_beat, kuski_not_beat_table, wr_not_beat) =
+				wr_to_values(&first_wr_not_beat);
+			let wr_not_beat_class = model.get_time_class(&wr_not_beat, i);
+
+			let target = model.get_next_target(&pr, i);
+			let target_class = model.get_time_class(&target, i);
+
+			Row {
+				lev_number,
 				lev_name: lev_name.to_string(),
-				pr: pr,
-				wr_beat: last_wr_beat.cloned(),
-				wr_not_beat: first_wr_not_beat.cloned(),
+				pr,
+				pr_class,
+				kuski_beat,
+				kuski_beat_table,
+				wr_beat: wr_beat,
+				wr_beat_class,
+				kuski_not_beat,
+				kuski_not_beat_table,
+				wr_not_beat: wr_not_beat,
+				wr_not_beat_class,
+				target,
+				target_class,
 			}
 		})
 		.collect()
 }
 
-pub fn wr_to_values(wr: &Option<WR>) -> (i32, i32, Time, String) {
+pub fn wr_to_values(wr: &Option<WR>) -> (i32, String, i32, Time) {
 	if let Some(WR {
 		table,
 		lev,
@@ -272,92 +177,30 @@ pub fn wr_to_values(wr: &Option<WR>) -> (i32, i32, Time, String) {
 		ref kuski,
 	}) = *wr
 	{
-		(table, lev, time, kuski.to_string())
+		(lev, kuski.to_string(), table, time)
 	} else {
-		(0, 0, Time(0), "".to_owned())
+		(0, "".to_owned(), 0, Time(0))
 	}
 }
 
-fn compute_tts(drs: &[DataRow]) -> (Time, Time) {
-	drs.iter().fold((Time(0), Time(0)), |acc, dr| {
+fn compute_tts(rs: &[Row]) -> (Time, Time) {
+	rs.iter().fold((Time(0), Time(0)), |acc, r| {
 		(
-			acc.0 + dr.pr,
-			acc.1 + if let Some(wr) = dr.wr_not_beat.clone() {
-				wr.time
+			acc.0 + r.pr,
+			acc.1 + if r.wr_not_beat != Time(0) {
+				r.wr_not_beat
 			} else {
-				dr.pr
+				r.pr
 			},
 		)
 	})
 }
 
-// ! apparently slower
-#[allow(dead_code)]
-pub fn build_table_update_data_(
-	model: &Model,
-	sort_by: SortBy,
-) -> Result<serde_json::Value, Error> {
-	let mut data = populate_table_data(&model);
-
-	// * Footer
-	let (p_tt, target_wr_tt) = compute_tts(&data);
-	let target_tt = model.get_next_targets_tt();
-	let footer_json =
-		json!({"p_tt": p_tt.0, "target_wr_tt": target_wr_tt.0, "target_tt": target_tt.0});
-
-	sort_table_data_(&mut data, &model, sort_by).unwrap();
-
-	// * Body
-	let data_vec = data.iter()
-		.map(
-			|DataRow {
-			     lev_number,
-			     lev_name,
-			     pr,
-			     wr_beat,
-			     wr_not_beat,
-			 }| {
-				let lev_idx = (lev_number - 1) as usize;
-				let pr_class = model.get_time_class(pr, lev_idx);
-				let target = model.get_next_target(pr, lev_idx);
-				let target_class = if target != Time(0) {
-					model.get_time_class(&target, lev_idx)
-				} else {
-					"".to_owned()
-				};
-				let (table_b, _, time_b, kuski_b) = wr_to_values(wr_beat);
-				let wr_b_class = model.get_time_class(&time_b, lev_idx);
-				let (table_nb, _, time_nb, kuski_nb) = wr_to_values(wr_not_beat);
-				let wr_nb_class = model.get_time_class(&time_nb, lev_idx);
-				json!({"lev_number": lev_number,
-						"lev_name": lev_name,
-						"pr" : {"time": pr.0, "class": pr_class},
-						"wr_beat": { "time": time_b.0, "class": wr_b_class, "table": table_b, "kuski": kuski_b },
-						"wr_not_beat": { "time": time_nb.0, "class": wr_nb_class, "table": table_nb, "kuski": kuski_nb },
-						"target": {"time": target.0, "class": target_class}})
-			},
-		)
-		.collect::<Vec<serde_json::Value>>();
-
-	//sort_table_data(&mut data_vec, sort_by).expect("Error while sorting");
-	let json_row_data: serde_json::Value = data_vec.into();
-	Ok(json!({"rows": json_row_data, "footer": footer_json}))
-}
-
-#[allow(dead_code)]
-fn sort_table_data_(data: &mut Vec<DataRow>, model: &Model, sort_by: SortBy) -> Result<(), Error> {
+fn sort_table_data(data: &mut Vec<Row>, model: &Model, sort_by: SortBy) -> Result<(), Error> {
 	match sort_by {
 		SortBy::Table(ord) => data.sort_by(|x, y| {
-			let table1: i32 = if let Some(ref wr) = x.wr_beat {
-				wr.table
-			} else {
-				0
-			};
-			let table2: i32 = if let Some(ref wr) = y.wr_beat {
-				wr.table
-			} else {
-				0
-			};
+			let table1: i32 = x.kuski_beat_table;
+			let table2: i32 = y.kuski_beat_table;
 			match ord {
 				SortOrder::Ascending => table1.cmp(&table2),
 				SortOrder::Descending => table2.cmp(&table1),
@@ -385,17 +228,9 @@ fn sort_table_data_(data: &mut Vec<DataRow>, model: &Model, sort_by: SortBy) -> 
 		}),
 		SortBy::DiffToPrevWR(ord) => data.sort_by(|x, y| {
 			let pr1 = x.pr;
-			let wr1 = if let Some(ref wr) = x.wr_beat {
-				wr.time
-			} else {
-				pr1
-			};
+			let wr1 = x.wr_beat;
 			let pr2 = y.pr;
-			let wr2 = if let Some(ref wr) = y.wr_beat {
-				wr.time
-			} else {
-				pr2
-			};
+			let wr2 = y.wr_beat;
 			match ord {
 				SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
 				SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),
@@ -403,17 +238,9 @@ fn sort_table_data_(data: &mut Vec<DataRow>, model: &Model, sort_by: SortBy) -> 
 		}),
 		SortBy::DiffToNextWR(ord) => data.sort_by(|x, y| {
 			let pr1 = x.pr;
-			let wr1 = if let Some(ref wr) = x.wr_not_beat {
-				wr.time
-			} else {
-				pr1
-			};
+			let wr1 = x.wr_not_beat;
 			let pr2 = y.pr;
-			let wr2 = if let Some(ref wr) = y.wr_not_beat {
-				wr.time
-			} else {
-				pr2
-			};
+			let wr2 = y.wr_not_beat;
 			match ord {
 				SortOrder::Ascending => (pr1 - wr1).cmp(&(pr2 - wr2)),
 				SortOrder::Descending => (pr2 - wr2).cmp(&(pr1 - wr1)),

@@ -1,67 +1,141 @@
 use elma::Time;
-use maud::html;
-use maud::Markup;
+use maud::{html, Markup};
 use shared;
-use shared::ClassedTime;
 
 #[allow(dead_code)]
 pub struct Row {
-    lev_number: i32,
-    lev_name: String,
-    pr: Time,
-    pr_class: String,
-    kuski_beat: String,
-    kuski_beat_table: i32,
-    wr_beat: Time,
-    wr_beat_class: String,
-    kuski_not_beat: String,
-    kuski_not_beat_table: i32,
-    wr_not_beat: Time,
-    wr_not_beat_class: String,
-    target: Time,
-    target_class: String,
+    pub lev_number: i32,
+    pub lev_name: String,
+    pub pr: Time,
+    pub pr_class: String,
+    pub kuski_beat: String,
+    pub kuski_beat_table: i32,
+    pub wr_beat: Time,
+    pub wr_beat_class: String,
+    pub kuski_not_beat: String,
+    pub kuski_not_beat_table: i32,
+    pub wr_not_beat: Time,
+    pub wr_not_beat_class: String,
+    pub target: Time,
+    pub target_class: String,
 }
 
-#[allow(dead_code)]
-pub fn table_row(row: &Row) -> Markup {
-    html!({ tr { // id
-        td.lev-td (format!("{}. {}", row.lev_number, row.lev_name)) //id
-        td (row.pr) //id
-        td { (row.kuski_not_beat) (diff(row.pr-row.wr_not_beat)) } //id
-        td { (row.wr_not_beat) (diff(row.pr-row.wr_not_beat)) } //id
-        td { (row.kuski_beat) (diff(row.pr-row.wr_not_beat)) } //id
-        td { (row.wr_beat) (diff(row.pr-row.wr_beat)) } //id
-    } })
-}
-
-#[allow(dead_code)]
-pub fn table_footer(
-    p_tt: ClassedTime,
-    target_wr_tt: ClassedTime,
-    target_tt: ClassedTime,
-) -> String {
+pub fn table_body(rows: &[Row]) -> String {
     html!({
-        tr {
-            td
-            td class={ "tt" " " (p_tt.class) } (p_tt.time.to_string())
-            td
-            td
-            (time_td_with_diff(&target_wr_tt, p_tt.time))
-            td
-            (time_td_with_diff(&target_tt, p_tt.time))
+        @for r in rows.into_iter() {
+            (table_row(r))
         }
     }).into_string()
 }
 
-pub fn time_td_with_diff(ct: &ClassedTime, t: Time) -> Markup {
+#[allow(dead_code)]
+fn table_row(row: &Row) -> Markup {
+    let pr = row.pr;
+    html!({ tr id={ "lev-" (row.lev_number) } { // id
+        td class="lev-td" (format!("{}. {}", row.lev_number, row.lev_name)) //id
+        td class={ "pr-td" " " (row.pr_class) } (pr) //id
+        @if row.kuski_beat_table != 0 {
+            td { (row.kuski_beat) (table_num(row.kuski_beat_table)) }
+            (time_td_with_diff(row.wr_beat, &row.wr_beat_class, pr))
+        } @else {
+            td span class="empty-td" "-"
+            td span class="empty-td" "-"
+        }
+        @if row.kuski_not_beat_table != 0 {
+            td { (row.kuski_not_beat) (table_num(row.kuski_not_beat_table)) }
+            (time_td_with_diff(row.wr_not_beat, &row.wr_not_beat_class, pr))
+        } @else {
+            td class="empty-td" "-"
+            td class="empty-td" "-"
+        }
+        (time_td_with_diff(row.target, &row.target_class, pr))
+    }})
+}
+/*
+        formatWrBeatEntry(row['wr_beat'], pr.time) +
+        formatTimeEntry(row['wr_not_beat'], pr.time) +
+        formatTimeEntry(row['target'], pr.time) +
+        "</tr>"
+}
+
+// * Not very robust
+function formatWrBeatEntry(entry, pr) {
+    if (entry['time'] == 0) {
+        return "<td class=\"kuski-beat-td empty-td\">-</td>" +
+            "<td class=\"empty-td\">-</td>";
+    }
+    var kuskiTd = "";
+    if (entry['table'] != 0 && entry['table'] != null) {
+        kuskiTd = "<td class=\"kuski-beat-td\">" + entry['kuski'] + " (<em><strong>" +
+            entry['table'] + "</em></strong>)</td>";
+    }
+    var timeTd = "<td class=\"" + entry['class'] + "\">" +
+        formatTime(entry['time']) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr - entry['time']) +
+        "</em></strong>)</span></td>";
+
+    return kuskiTd + timeTd;
+}
+
+function formatTimeEntry(entry, pr) {
+    if (entry['time'] == 0) {
+        return "<td class=\"empty-td\">-</td><td class=\"empty-td\">-</td>";
+    }
+    var kuskiTd = "";
+    if (entry['table'] != 0 && entry['table'] != null) {
+        kuskiTd = "<td>" + entry['kuski'] + " (<em><strong>" +
+            entry['table'] + "</em></strong>)</td>";
+    }
+    var timeTd = "<td class=\"" + entry['class'] + "\">" +
+        formatTime(entry['time']) +
+        " <span class=\"diff\">(<em><strong>" +
+        formatTimeDiff(pr - entry['time']) +
+        "</em></strong>)</span></td>";
+
+    return kuskiTd + timeTd;
+}
+*/
+#[allow(dead_code)]
+pub fn table_footer(
+    p_tt: Time,
+    p_tt_class: &str,
+    target_wr_tt: Time,
+    target_wr_tt_class: &str,
+    target_tt: Time,
+    target_tt_class: &str,
+) -> String {
     html!({
-        td class={ "tt" " " (ct.class) } { 
-            (ct.time.to_string()) "" (diff(t - ct.time))
+        tr {
+            td
+            td class={ (p_tt_class) } (p_tt.to_string())
+            td
+            td
+            (time_td_with_diff(target_wr_tt, &target_wr_tt_class, p_tt))
+            td
+            (time_td_with_diff(target_tt, &target_tt_class, p_tt))
+        }
+    }).into_string()
+}
+
+pub fn time_td_with_diff(tt: Time, tt_class: &str, t: Time) -> Markup {
+    html!({
+        td class={ (tt_class) } { 
+            (tt.to_string()) "" (diff(t - tt))
         }
     })
 }
 
-#[allow(dead_code)]
+fn table_num(table: i32) -> Markup {
+    html!({
+        span class="diff" {
+            "(" em {
+                strong { (table) }
+            } ")"
+        }
+    })
+}
+
 pub fn diff(diff: Time) -> Markup {
     html!({
         span class="diff" {

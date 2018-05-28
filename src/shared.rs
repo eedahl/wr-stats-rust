@@ -29,26 +29,11 @@ impl Add for Targets {
 }
 
 #[derive(Debug, Clone)]
-pub struct ClassedTime {
-    pub time: Time,
-    pub class: String,
-}
-
-#[derive(Debug, Clone)]
 pub struct WR {
     pub table: i32,
     pub lev: i32,
     pub time: Time,
     pub kuski: String,
-}
-
-#[derive(Debug)]
-pub struct DataRow {
-    pub lev_number: i32,
-    pub lev_name: String,
-    pub pr: Time,
-    pub wr_beat: Option<WR>,
-    pub wr_not_beat: Option<WR>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -81,7 +66,6 @@ pub fn get_sort_hint(sort_param: &str, ascending: bool) -> SortBy {
     }
 }
 
-#[allow(dead_code)]
 pub fn time_to_diff_string(t: Time) -> String {
     let (negative, h, m, s, hd) = t.to_parts();
     let sign = if negative { "-" } else { "+" };
