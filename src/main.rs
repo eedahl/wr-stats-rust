@@ -1,6 +1,9 @@
 //#![windows_subsystem = "windows"]
+#![feature(proc_macro)]
+#![feature(proc_macro_non_items)]
 extern crate elma;
 extern crate failure;
+extern crate maud;
 extern crate notify;
 extern crate web_view;
 #[macro_use]
@@ -9,9 +12,14 @@ extern crate serde;
 #[macro_use]
 extern crate serde_json;
 
+mod cont;
 mod html;
 mod http;
+mod model;
 mod shared;
+mod templ;
+
+use model::Model;
 
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
@@ -34,7 +42,29 @@ use web_view::WebView;
 // ? and a horizontal line showing your current time
 // ? an alternative would be a header with "Overview" and "Additional stats" that lets you
 // ? click between the table and additional stats like different tts and table counts
-
+/*so have header of PR be a dropdown menu of like "PR, avg" etc and you choose what to display to compare against
+and then have a stat column where you choose like
+"wr stats"
+"top 10 table"
+"target times"
+but you click the target WR column to expand/collapse
+that's the functionality explanation, here's the new feature
+take the same idea, make the "PR" column clickable
+and expandong to(edited)
+http://stats.sshoyer.net/player.php?player=Haruhi
+top 10 table
+in same way as elmastats has it
+here's the part i haven't worked out
+reason for top 10 stats is
+so can compare to WR tables in same way as PR is currently
+ie
+what tables does my 10th time in int06 beat?
+what tables does my avg in int35 beat
+etc
+Also there used to be some interest long ago in TT of 2nd times in top 10, TT of 3rd times in top 10 etc.
+but afaik those programs to calculate it are gone
+can do on elmastats if coded ofc
+but may as well add to your program, if want*/
 /*
 ? ideas for data
 TT of current WRs
@@ -59,10 +89,6 @@ Worst differences to see where need to improve a lot
 Graph for tt
 */
 
-mod controllers;
-mod model;
-use model::Model;
-
 fn main() {
     http::download_wr_tables().unwrap_or_else(|e| {
         println!("Error updating WR tables: {:?}", e);
@@ -74,7 +100,7 @@ fn main() {
     let mut model = Model::new().expect("Could not create model.");
 
     let html = html::index();
-    let size = (1000, 900);
+    let size = (1000, 925);
     let resizable = true;
     let debug = true;
     let userdata = ();
@@ -112,6 +138,7 @@ fn main() {
                 displayView { view } => match view.as_ref() {
                     "table" => display_view(webview, "table", &html::table_view()),
                     "level" => display_view(webview, "level", &html::level_view()),
+                    "tt" => display_view(webview, "tt", &html::tt_view()),
                     v => println!("View in display request not recognised: {}", v),
                 },
                 updateView { view, arg } => match view.as_ref() {
@@ -123,7 +150,7 @@ fn main() {
 
                         model.update_pr_table().expect("Failed to update PR table.");
 
-                        let data = controllers::build_table_update_data(&model, sort_by).unwrap();
+                        let data = cont::build_table_update_data(&model, sort_by).unwrap();
                         update_view(webview, "table", data);
                     }
                     "level" => {
@@ -131,8 +158,14 @@ fn main() {
 
                         model.update_pr_table().expect("Failed to update PR table.");
 
-                        let data = controllers::get_level_update_data(&model, level).unwrap();
+                        let data = cont::get_level_update_data(&model, level).unwrap();
                         update_view(webview, "level", data);
+                    }
+                    "tt" => {
+                        model.update_pr_table().expect("Failed to update PR table.");
+
+                        let data = cont::get_tt_update_data(&model).unwrap();
+                        update_view(webview, "tt", data);
                     }
                     v => println!("View in update request not recognised: {}", v),
                 },

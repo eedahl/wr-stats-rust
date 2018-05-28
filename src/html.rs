@@ -1,7 +1,7 @@
 // ! Index
 pub fn index() -> String {
     format!(
-r#"
+r##"
 <!doctype html>
 <html lang="en">
     <head>
@@ -11,14 +11,27 @@ r#"
         {styles}
     </head>
     <body>
-    <!--[if lt IE 9]>
+    <!--[if lt IE 10]>
     <div class="ie-upgrade-container">
         <p class="ie-upgrade-message">Please, upgrade Internet Explorer to continue using this software.</p>
         <a class="ie-upgrade-link" target="_blank" href="https://www.microsoft.com/en-us/download/internet-explorer.aspx">Upgrade</a>
     </div>
     <![endif]-->
-    <!--[if gte IE 9 | !IE ]> <!-->
-        <div class="container-fluid" id="view"></div>
+    <!--[if gte IE 10 | !IE ]> <!-->
+
+        <ul>
+            <li><a href="javascript:void(0)">Home</a></li>
+            <li><a href="javascript:rpc.request({{cmd: 'displayView', view: 'table', }});void(0)">Table</a></li>
+            <li><a href="javascript:rpc.request({{cmd: 'displayView', view: 'tt', }});void(0)">TT view</a></li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Dropdown</a>
+                <div class="dropdown-content">
+                    <a href="javascript:void(0)">TT view</a>
+                </div>
+            </li>
+            <li style="float:right"><a class="active" href="#about">About</a></li>
+        </ul>
+        <div class="container" id="view"></div>
         <script charset="utf-8">
             {d3_script}
         </script>
@@ -27,7 +40,7 @@ r#"
     <![endif]-->
     </body>
 </html>
-"#,     
+"##,     
         //{bootstrap}
         //bootstrap = inline_style(include_str!("bootstrap-4.1.1/css/bootstrap.min.css")),
         d3_script = include_str!("d3/d3.min.js"),
@@ -62,14 +75,24 @@ r#"
 "#)
 }
 
+// ! Table view
+pub fn tt_view() -> String {
+    format!(
+        r#"
+<h2>TT view</h2>
+<div id="chart" class="container-fluid"></div>
+"#
+    )
+}
+
 // ! Level view
 pub fn level_view() -> String {
     format!(
         r#"
 <h2>Level view</h2>
-<p class="to-table-view" onclick="rpc.request({{cmd: 'displayView', view: 'table', }});">Go to table view</p>
 <div id="chart" class="container-fluid"></div>
-"#)
+"#
+    )
 }
 
 fn inline_style(s: &str) -> String {
